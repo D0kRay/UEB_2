@@ -1,0 +1,61 @@
+/*
+ * communication.h
+ *
+ *  Created on: 19.11.2022
+ *      Author: pasik
+ */
+
+#ifndef COMMUNICATION_COMMUNICATION_H_
+#define COMMUNICATION_COMMUNICATION_H_
+
+//UEB Statuses
+
+typedef struct
+{
+  uint8_t  status;				//the actual status of the UEB: 0 = INIT; 1 = RUN; 2 = STOP; 3 = NOPARAM; 4 = ERROR...
+  uint8_t  vccvoltage;
+  uint8_t  vccvoltage;
+  uint8_t  vccvoltage;
+  uint8_t  vccvoltage;
+  uint8_t  vccvoltage;
+  uint8_t  vccvoltage;
+  uint8_t  vccvoltage;
+} UEB_StatusInfoType;
+
+//Commands to get and set Status of the UEB
+static const char UEBREADY[] = "?";								//returns the actual state of the UEB
+static const char GETMEASURES[] = "UEB_start_measure";			//starts the measure and pushes all data to the serial port
+static const char STOPMEASURES[] = "UEB_stop_measure";			//stops pushing data to the serial port
+
+//Command to get Parameters of the UEB
+static const char GETPARAMETERS[] = "UEB_get_params";
+
+//Commands to set Parameters on the UEB
+static const char SETPARAMETERS[] = "UEB_start_set";			//
+static const char SAVEPARAMETERS[] = "UEB_save_params";
+static const char SETVCCVOLTAGE[] = "UEB_set_Vcc:";				//The value must be in
+static const char SETOUTVOLTAGE[] = "UEB_set_Vout";
+
+static const char SETFREQUENCY[] = "UEB_set_freq:";
+static const char SETROTATION[] = "UEB_set_rot:";
+static const char SETTHIRDHARMONIC[] = "UEB_set_thirdharm:";
+static const char SETSOFTSTART[] = "UEB_set_softstart:";
+static const char SETSOFTSTARTDURATION[] = "UEB_set_softdur:";
+static const char SETMAXCURRENT[] = "UEB_set_maxCurr:";
+static const char SETNUMAVERAGED[] = "UEB_set_averagednum:";
+
+
+
+/*
+float 			frequency = 120;				//enter frequency of the 3-phase sine (range of values: 0.1Hz to 200Hz)
+float 			v_bridge_uf = 11;			//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
+float 			voltage_ref = 6;				//enter your preferred voltage for the amplitude of the sine (range of Values: 1V to 0.95*"v_bridge_uf")
+bool 			rotationDirectionCW = false;		//enter the direction of rotation, true -> clockwise; false -> counterclockwise
+bool 			enableThirdHarmonic = true;	    //enter true, if you want to enable the third harmonic mode
+bool 			enableSoftstarter = false;		//enter true, if you want the motor to start slowly
+float			softstarterDuration = 1;		//enter duration of the softstarter ramp in seconds
+const float		overCurrentThreshold = 10; 		//enter the allowed current in ampere (range of values: 0 to 10 Ampere)
+uint32_t		numberOfAveragedValues = 10;
+*/
+
+#endif /* COMMUNICATION_COMMUNICATION_H_ */

@@ -1,0 +1,99 @@
+/*
+ * communication.c
+ *
+ *  Created on: 19.11.2022
+ *      Author: pasik
+ */
+
+#include "usb_device.h"
+#include "com_provider.h"
+#include "communication.h"
+
+char tokenizebuffer[BUFFERSIZE];
+char* token;
+
+UEB_StatusType pUEB_status;
+
+uint8_t receivebuffer[BUFFERSIZE];
+
+
+
+
+void getFloatOfMessage(char *message, char *commandstring, float value)
+{
+	char *s;
+	s = strstr(message, commandstring);      // search for searchedstring in message
+	s =  s + strlen(commandstring);// index of s in buff can be found by pointer subtraction
+	value = (float_t)strtod(s, NULL);
+}
+
+//void getUint32OfMessage(char *message, char *commandstring, uint32_t value)
+//{
+//	char *s;
+//	s = strstr(message, commandstring);
+//	s = s + strlen(commandstring);
+//	value = (uint32_t)strtod(s, NULL);
+//}
+
+void setUEBStatusValue(char *message)
+{
+	if (strstr(message, UEBREADY) != NULL) {
+		setBuffer((uint8_t*)UEB_VERSION, strlen(UEB_VERSION));
+	} else if(strstr(message, GETMEASURES) != NULL){
+		pUEB_status.status = UEB_RUN;
+	} else if(strstr(message, STOPMEASURES) != NULL){
+		pUEB_status.status = UEB_STOP;
+	} else if(strstr(message, GETPARAMETERS) != NULL){
+		uint8_t* string;
+		string = malloc(1024);
+
+		snprintf(string, 1024, "%d%d%d%d%d%d%d%d%d%d\r", (uint8_t)pUEB_status.status, (uint8_t)pUEB_status.vccvoltage,
+				(uint8_t)pUEB_status.outvoltage, (uint8_t)pUEB_status.frequency, (uint8_t)pUEB_status.rotationdirection,
+				(uint8_t)pUEB_status.thirdharmonic, (uint8_t)pUEB_status.softstart, (uint8_t)pUEB_status.softstartduration,
+				(uint8_t)pUEB_status.maxcurrent, (uint8_t)pUEB_status.averagenum);
+		setBuffer(string, strlen(string));
+		free(string);
+	} else if(strstr(message, SETPARAMETERS) != NULL){
+		pUEB_status.status = UEB_INIT_FINISH;
+	} else if(strstr(message, SETVCCVOLTAGE) != NULL){
+		getFloatOfMessage(message, (char *)SETVCCVOLTAGE, pUEB_status.vccvoltage);
+	} else if(strstr(message, SETOUTVOLTAGE) != NULL){
+		getFloatOfMessage(message, (char *)SETOUTVOLTAGE, pUEB_status.outvoltage);
+	} else if(strstr(message, SETFREQUENCY) != NULL){
+		getFloatOfMessage(message, (char *)SETFREQUENCY, pUEB_status.frequency);
+	} else if(strstr(message, SETROTATION) != NULL){
+		getFloatOfMessage(message, (char *)SETROTATION, pUEB_status.rotationdirection);
+	} else if(strstr(message, SETTHIRDHARMONIC) != NULL){
+		getFloatOfMessage(message, (char *)SETTHIRDHARMONIC, pUEB_status.thirdharmonic);
+	} else if(strstr(message, SETSOFTSTART) != NULL){
+		getFloatOfMessage(message, (char *)SETSOFTSTART, pUEB_status.softstart);
+	} else if(strstr(message, SETSOFTSTARTDURATION) != NULL){
+		getFloatOfMessage(message, (char *)SETSOFTSTARTDURATION, pUEB_status.softstartduration);
+	} else if(strstr(message, SETMAXCURRENT) != NULL){
+		getFloatOfMessage(message, (char *)SETMAXCURRENT, pUEB_status.maxcurrent);
+	} else if(strstr(message, SETNUMAVERAGED) != NULL){
+		getFloatOfMessage(message, (char *)SETNUMAVERAGED, pUEB_status.averagenum);
+	}
+}
+
+void divideMessage(uint8_t *USBbuffer, const char *delimiter)
+{
+	strcpy(tokenizebuffer, (const char *)USBbuffer);
+	uint8_t i = 0;
+	token = strtok(tokenizebuffer, delimiter);
+	while (token != NULL) {
+		setUEBStatusValue(token);
+		token = strtok(NULL, delimiter);
+		i++;
+	}
+}
+
+void getNewStatus(UEB_StatusType *uebstatus)
+{
+	pUEB_status = *uebstatus;
+	get_receive_message(receivebuffer, BUFFERSIZE);
+	if(receivebuffer[0] != '\0') {
+		divideMessage(receivebuffer, DELIMITER_FULLMESSAGE);
+		memset(receivebuffer, '\0', BUFFERSIZE);
+	}
+}

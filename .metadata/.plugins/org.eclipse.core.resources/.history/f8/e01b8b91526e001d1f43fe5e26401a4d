@@ -1,0 +1,84 @@
+/*
+ * communication.c
+ *
+ *  Created on: 19.11.2022
+ *      Author: pasik
+ */
+
+#include "usb_device.h"
+#include "com_provider.h"
+#include "communication.h"
+
+char tokenizebuffer[BUFFERSIZE];
+char* token;
+
+UEB_StatusType pUEB_status;
+
+uint8_t receivebuffer[BUFFERSIZE];
+
+
+
+void getFloatOfMessage(char *message, char *commandstring, float value)
+{
+	char *s;
+	s = strstr(message, commandstring);      // search for searchedstring in message
+	s =  s + strlen(commandstring);// index of s in buff can be found by pointer subtraction
+	value = (float_t)strtod(s, NULL);
+}
+
+void setUEBStatusValue(char *message)
+{
+	if (strstr(message, UEBREADY) != NULL) {
+
+	} else if(strstr(message, GETMEASURES) != NULL){
+
+	} else if(strstr(message, STOPMEASURES) != NULL){
+
+	} else if(strstr(message, GETPARAMETERS) != NULL){
+
+	} else if(strstr(message, SETPARAMETERS) != NULL){
+
+	} else if(strstr(message, SETVCCVOLTAGE) != NULL){
+		 getFloatOfMessage(message, (char *)SETVCCVOLTAGE, pUEB_status.vccvoltage);
+	} else if(strstr(message, SETOUTVOLTAGE) != NULL){
+
+	} else if(strstr(message, SETFREQUENCY) != NULL){
+
+	} else if(strstr(message, SETROTATION) != NULL){
+
+	} else if(strstr(message, SETTHIRDHARMONIC) != NULL){
+
+	} else if(strstr(message, SETSOFTSTART) != NULL){
+
+	} else if(strstr(message, SETSOFTSTARTDURATION) != NULL){
+
+	} else if(strstr(message, SETMAXCURRENT) != NULL){
+
+	} else if(strstr(message, SETNUMAVERAGED) != NULL){
+
+	} else {
+
+	}
+}
+
+void divideMessage(uint8_t *USBbuffer, const char *delimiter)
+{
+	strcpy(tokenizebuffer, (const char *)USBbuffer);
+	uint8_t i = 0;
+	token = strtok(tokenizebuffer, delimiter);
+	while (token != NULL) {
+		setUEBStatusValue(token);
+		token = strtok(NULL, delimiter);
+		i++;
+	}
+}
+
+void getNewStatus(UEB_StatusType *uebstatus)
+{
+	pUEB_status = *uebstatus;
+	get_receive_message(receivebuffer, BUFFERSIZE);
+	if(receivebuffer[0] != '\0') {
+		divideMessage(receivebuffer, DELIMITER_FULLMESSAGE);
+		memset(receivebuffer, '\0', BUFFERSIZE);
+	}
+}

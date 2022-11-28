@@ -1,0 +1,6 @@
+../Drivers/Communication/com_provider.c:20:9:is_receive_complete	8	static
+../Drivers/Communication/com_provider.c:30:6:get_receive_message	16	static
+../Drivers/Communication/com_provider.c:39:9:transmit_buffer1_status	4	static
+../Drivers/Communication/com_provider.c:44:9:transmit_buffer2_status	4	static
+../Drivers/Communication/com_provider.c:53:9:transmit_ready	16	static
+../Drivers/Communication/com_provider.c:65:6:transmit_data	8	static
