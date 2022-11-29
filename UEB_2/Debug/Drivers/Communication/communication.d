@@ -41,6 +41,9 @@ Drivers/Communication/communication.o: \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h \
  ../USB_DEVICE/Target/usbd_conf.h ../Core/Inc/main.h \
+ ../DT_protocol/Inc/DT_interface.h ../DT_protocol/Inc/DT_includes.h \
+ ../DT_protocol/Inc/DT_memory.h ../EventQueue/Inc/EventQueue.h \
+ ../DT_protocol/Inc/DT_runable.h ../DT_protocol/Inc/DT_interface.h \
  ../Drivers/Communication/com_provider.h ../USB_DEVICE/App/usbd_cdc_if.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
@@ -92,6 +95,12 @@ Drivers/Communication/communication.o: \
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h:
 ../USB_DEVICE/Target/usbd_conf.h:
 ../Core/Inc/main.h:
+../DT_protocol/Inc/DT_interface.h:
+../DT_protocol/Inc/DT_includes.h:
+../DT_protocol/Inc/DT_memory.h:
+../EventQueue/Inc/EventQueue.h:
+../DT_protocol/Inc/DT_runable.h:
+../DT_protocol/Inc/DT_interface.h:
 ../Drivers/Communication/com_provider.h:
 ../USB_DEVICE/App/usbd_cdc_if.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h:

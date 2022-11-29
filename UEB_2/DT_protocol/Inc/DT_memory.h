@@ -1,17 +1,12 @@
 /*
- * USB_Packaging.h
+ * DT_memory.h
  *
- *  Created on: Nov 17, 2022
+ *  Created on: 29.11.2022
  *      Author: marcwech
- *
- *  This header file is part of the transmission protocol for the STM32 via USB_OTG_FS.
- *  Further documentation of the transmission protocol can be found in the documentation
- *  according to the "Masterprojektarbeit" of the WS2022 from Marc Wechselberger and Pascal Kirchhoff @THU.
  */
 
-#ifndef USB_PACKAGING_H_
-#define USB_PACKAGING_H_
-
+#ifndef INC_DT_MEMORY_H_
+#define INC_DT_MEMORY_H_
 
 #ifdef __cplusplus
  extern "C" {
@@ -68,4 +63,5 @@ uint8_t MEM_calc_params(uint8_t resolution, uint8_t sample_rate, uint8_t acquist
 #endif
 
 
-#endif /* USB_PACKAGING_H_ */
+
+#endif /* INC_DT_MEMORY_H_ */

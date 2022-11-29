@@ -1,7 +1,7 @@
 /*
  * DT_runable.h
  *
- *  Created on: Nov 25, 2022
+ *  Created on: 29.11.2022
  *      Author: marcwech
  */
 
@@ -12,7 +12,5 @@
 
 void DT_main(void);
 void Algorithmus(Dataset *Set, void *buf);
-
-
 
 #endif /* INC_DT_RUNABLE_H_ */

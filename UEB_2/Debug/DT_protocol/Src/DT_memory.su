@@ -1,0 +1,3 @@
+../DT_protocol/Src/DT_memory.c:25:6:MEM_alloc_params	16	static
+../DT_protocol/Src/DT_memory.c:37:6:MEM_free_params	16	static
+../DT_protocol/Src/DT_memory.c:51:9:MEM_calc_params	16	static

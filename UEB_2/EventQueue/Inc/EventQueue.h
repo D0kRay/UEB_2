@@ -1,7 +1,7 @@
 /*
  * EventQueue.h
  *
- *  Created on: 26.11.2022
+ *  Created on: 29.11.2022
  *      Author: marcwech
  */
 
@@ -36,6 +36,5 @@ Event getEvent(EventQueue *endofQueue);
 #ifdef __cplusplus
  }
 #endif
-
 
 #endif /* INC_EVENTQUEUE_H_ */

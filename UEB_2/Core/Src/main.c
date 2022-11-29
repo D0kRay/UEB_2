@@ -311,6 +311,10 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+	// Create EventQueues for priority run of the application
+  EventQueue* Q_USB 				= EventQueue_Init();
+  EventQueue* Q_DataTransmission 	= EventQueue_Init();
+  EventQueue* Q_Main 				= EventQueue_Init();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -397,6 +401,80 @@ int main(void)
   {
 	  getNewStatus(&uebstatus);
 	  setParameters(&uebstatus);
+
+	  // Main Queue - Priority 1
+	  if(Q_Main != NULL){
+		  Event evt = getEvent(Q_Main);
+		  switch(evt.source){
+		  case 0:
+
+			  break;
+
+		  case 1:
+
+			  break;
+
+		  default:
+			  break;
+		  }
+	  }
+	  // USB - Queue Priority 2
+	  if(Q_USB != NULL){
+		  Event evt = getEvent(Q_USB);
+		  switch(evt.source){
+		  case 0:
+
+
+			  break;
+
+		  case 1:
+
+			  break;
+
+		  default:
+			  break;
+		  }
+	  }
+	  // Data Transmission - Queue Priority 3
+	  if(Q_DataTransmission != NULL){
+		  Event evt = getEvent(Q_DataTransmission);
+		  DT_status status;
+		  switch(evt.source){
+		  case 0:
+
+			  break;
+
+		  case 1:
+
+			 status = DT_Start();
+
+			 switch(status){
+			 case 1:
+				 evt.class = 0;
+				 evt.source  =0;
+				 addEvent(&Q_USB, &evt);
+				 break;
+			 default:
+				 DT_main();
+				 break;
+			 }
+			  break;
+		  default:
+			  break;
+		  }
+	  }
+
+	  // if button pressed run dataset
+	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
+		  Event *evt = malloc (sizeof(Event));
+		  (*evt).class = 0;
+		  (*evt).source = 0;
+
+		  addEvent(&Q_DataTransmission, evt);
+
+		  //DT_main();
+		  //HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+	  }
   }
     /* USER CODE END WHILE */
 

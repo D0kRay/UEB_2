@@ -38,6 +38,9 @@ Core/Src/stm32h7xx_it.o: ../Core/Src/stm32h7xx_it.c ../Core/Inc/main.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h \
+ ../DT_protocol/Inc/DT_interface.h ../DT_protocol/Inc/DT_includes.h \
+ ../DT_protocol/Inc/DT_memory.h ../EventQueue/Inc/EventQueue.h \
+ ../DT_protocol/Inc/DT_runable.h ../DT_protocol/Inc/DT_interface.h \
  ../Core/Inc/stm32h7xx_it.h
 ../Core/Inc/main.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h:
@@ -79,4 +82,10 @@ Core/Src/stm32h7xx_it.o: ../Core/Src/stm32h7xx_it.c ../Core/Inc/main.h \
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h:
+../DT_protocol/Inc/DT_interface.h:
+../DT_protocol/Inc/DT_includes.h:
+../DT_protocol/Inc/DT_memory.h:
+../EventQueue/Inc/EventQueue.h:
+../DT_protocol/Inc/DT_runable.h:
+../DT_protocol/Inc/DT_interface.h:
 ../Core/Inc/stm32h7xx_it.h:

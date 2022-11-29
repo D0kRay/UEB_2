@@ -23,8 +23,10 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+DT_protocol/Src \
 Drivers/Communication \
 Drivers/STM32H7xx_HAL_Driver/Src \
+EventQueue/Src \
 Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src \
 USB_DEVICE/App \

@@ -33,6 +33,9 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdbool.h"
+#include "DT_interface.h"
+#include "DT_runable.h"
+#include "EventQueue.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

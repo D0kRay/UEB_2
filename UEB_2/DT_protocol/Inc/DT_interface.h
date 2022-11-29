@@ -1,21 +1,18 @@
 /*
  * DT_interface.h
  *
- *  Created on: Nov 25, 2022
+ *  Created on: 29.11.2022
  *      Author: marcwech
  */
 
 #ifndef INC_DT_INTERFACE_H_
 #define INC_DT_INTERFACE_H_
 
-// INCLUDES
-#include <DT_includes.h>
-
 #ifdef __cplusplus
  extern "C" {
 #endif
 
-
+#include "DT_includes.h"
 
 // DEFINES
 
@@ -57,9 +54,5 @@ void* DT_Init_Memory(uint32_t size);
 #ifdef __cplusplus
  }
 #endif
-
-
-
-
 
 #endif /* INC_DT_INTERFACE_H_ */
