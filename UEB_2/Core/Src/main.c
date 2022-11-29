@@ -20,7 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-#include "USB_Packaging.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -386,7 +385,7 @@ int main(void)
 		  .maxcurrent = 1.0,
 		  .averagenum = 20
   };
-  UEB_MeasuresType uebmeasure;
+  //UEB_MeasuresType uebmeasure;
 
 
   /* USER CODE END 2 */

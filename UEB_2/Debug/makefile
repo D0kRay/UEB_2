@@ -65,8 +65,8 @@ all: main-build
 main-build: UEB_2.elf secondary-outputs
 
 # Tool invocations
-UEB_2.elf UEB_2.map: $(OBJS) $(USER_OBJS) C:\Users\pasik\OneDrive\ -\ thumaster\OneDrive\ -\ thu.de\Master\Semester_2\Masterprojekt\Software\Mikrocontroller\UEB_2\STM32H743IITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "UEB_2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\pasik\OneDrive - thumaster\OneDrive - thu.de\Master\Semester_2\Masterprojekt\Software\Mikrocontroller\UEB_2\STM32H743IITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEB_2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+UEB_2.elf UEB_2.map: $(OBJS) $(USER_OBJS) /Users/marcwech/Desktop/Privat/Hochschule/THU/SoftwareEngineering/Masterprojekt/Workspace_UEB/UEB_2/UEB_2/STM32H743IITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "UEB_2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/Users/marcwech/Desktop/Privat/Hochschule/THU/SoftwareEngineering/Masterprojekt/Workspace_UEB/UEB_2/UEB_2/STM32H743IITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEB_2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
