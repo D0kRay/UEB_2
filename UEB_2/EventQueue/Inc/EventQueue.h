@@ -22,15 +22,19 @@ typedef struct event{
 
 }Event;
 
-typedef struct queue{
+typedef struct element{
 	Event data;
-	struct queue *next;
-	struct queue *prev;
+	struct element *next;
+}EventElement;
+
+typedef struct queue{
+	EventElement *begin;
+	EventElement *endof;
 }EventQueue;
 
 EventQueue* EventQueue_Init();
-void addEvent(EventQueue **endofQueue, Event *evt);
-Event getEvent(EventQueue *endofQueue);
+void addEvent(EventQueue **queue, Event *evt);
+void getEvent(EventQueue **queue, Event *evt);
 
 
 #ifdef __cplusplus

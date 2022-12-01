@@ -58,7 +58,7 @@ uint8_t IsBufferEmpty(uint8_t buffernumber)
 	return status;
 }
 
-void setBuffer(uint8_t *data, uint8_t size)
+void setBuffer(uint8_t *data, uint32_t size)
 {
 	if(buffer_in_use == 0) {
 		memset(buffer1, 0x00, sizeof(buffer1));

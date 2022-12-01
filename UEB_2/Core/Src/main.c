@@ -26,7 +26,6 @@
 #include "math.h"
 #include "stm32h743xx.h"
 #include "com_provider.h"
-#include "DT_decoder.h"
 
 /* USER CODE END Includes */
 
@@ -315,6 +314,8 @@ int main(void)
   EventQueue* Q_USB 				= EventQueue_Init();
   EventQueue* Q_DataTransmission 	= EventQueue_Init();
   EventQueue* Q_Main 				= EventQueue_Init();
+
+  uint8_t DT_TransmissionBuffer[1024];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -399,12 +400,13 @@ int main(void)
 
   while (1)
   {
-	  getNewStatus(&uebstatus);
-	  setParameters(&uebstatus);
+	  //getNewStatus(&uebstatus);
+	  //setParameters(&uebstatus);
 
 	  // Main Queue - Priority 1
 	  if(Q_Main != NULL){
-		  Event evt = getEvent(Q_Main);
+		  Event evt;
+		  getEvent(&Q_Main, &evt);
 		  switch(evt.source){
 		  case 0:
 
@@ -420,11 +422,11 @@ int main(void)
 	  }
 	  // USB - Queue Priority 2
 	  if(Q_USB != NULL){
-		  Event evt = getEvent(Q_USB);
+		  Event evt;
+		  getEvent(&Q_USB, &evt);
 		  switch(evt.source){
 		  case 0:
-
-
+			  setBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
 			  break;
 
 		  case 1:
@@ -437,11 +439,16 @@ int main(void)
 	  }
 	  // Data Transmission - Queue Priority 3
 	  if(Q_DataTransmission != NULL){
-		  Event evt = getEvent(Q_DataTransmission);
+		  Event evt;
+		  getEvent(&Q_DataTransmission, &evt);
 		  DT_status status;
 		  switch(evt.source){
 		  case 0:
+			  strcpy((char*)DT_TransmissionBuffer,"Hello World!");
 
+			  evt.class = 0;
+			  evt.source = 0;
+			  addEvent(&Q_USB,&evt);
 			  break;
 
 		  case 1:
@@ -471,9 +478,6 @@ int main(void)
 		  (*evt).source = 0;
 
 		  addEvent(&Q_DataTransmission, evt);
-
-		  //DT_main();
-		  //HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 	  }
   }
     /* USER CODE END WHILE */
@@ -991,9 +995,9 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
@@ -1024,6 +1028,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED1_Pin LED2_Pin LED3_Pin LED4_Pin
                            LED5_Pin LED6_Pin LED7_Pin LED8_Pin */
