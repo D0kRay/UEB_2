@@ -404,7 +404,7 @@ int main(void)
 	  //setParameters(&uebstatus);
 
 	  // Main Queue - Priority 1
-	  if(Q_Main != NULL){
+	  if(isEventQueued(Q_Main)){
 		  Event evt;
 		  getEvent(&Q_Main, &evt);
 		  switch(evt.source){
@@ -421,7 +421,7 @@ int main(void)
 		  }
 	  }
 	  // USB - Queue Priority 2
-	  if(Q_USB != NULL){
+	  if(isEventQueued(Q_USB)){
 		  Event evt;
 		  getEvent(&Q_USB, &evt);
 		  switch(evt.source){
@@ -438,7 +438,7 @@ int main(void)
 		  }
 	  }
 	  // Data Transmission - Queue Priority 3
-	  if(Q_DataTransmission != NULL){
+	  if(isEventQueued(Q_DataTransmission)){
 		  Event evt;
 		  getEvent(&Q_DataTransmission, &evt);
 		  DT_status status;

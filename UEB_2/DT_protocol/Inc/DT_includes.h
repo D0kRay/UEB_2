@@ -14,6 +14,7 @@
 
 #include "DT_memory.h"
 #include "EventQueue.h"
+#include "DT_list.h"
 #include "stdio.h"
 
 #ifdef __cplusplus

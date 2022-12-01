@@ -20,6 +20,9 @@ typedef struct event{
 	char class;
 	char source;
 
+	void* ptr_data;
+	uint32_t size_data;
+
 }Event;
 
 typedef struct element{
@@ -28,6 +31,7 @@ typedef struct element{
 }EventElement;
 
 typedef struct queue{
+	uint32_t count;
 	EventElement *begin;
 	EventElement *endof;
 }EventQueue;
@@ -35,6 +39,8 @@ typedef struct queue{
 EventQueue* EventQueue_Init();
 void addEvent(EventQueue **queue, Event *evt);
 void getEvent(EventQueue **queue, Event *evt);
+uint8_t isEventQueued(EventQueue *queue);
+void EventInit(Event *evt);
 
 
 #ifdef __cplusplus

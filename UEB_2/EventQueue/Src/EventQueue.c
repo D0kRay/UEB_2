@@ -12,6 +12,7 @@ EventQueue* EventQueue_Init(){
 	EventQueue *queue = malloc(sizeof(EventQueue));
 	queue->begin = NULL;
 	queue->endof = NULL;
+	queue->count = 0;
 	return queue;
 }
 
@@ -36,13 +37,15 @@ void addEvent(EventQueue **queue, Event *evt){
 			(*queue)->endof->next = newElement;
 			(*queue)->endof = newElement;
 		}
+
+		(*queue)->count++;
 	}
 	return;
 }
 
 void getEvent(EventQueue **queue, Event *evt){
 
-	if(queue == NULL)
+	if(*queue == NULL)
 		return;
 
 	if((*queue)->begin == NULL)
@@ -54,5 +57,21 @@ void getEvent(EventQueue **queue, Event *evt){
 	(*queue)->begin = tmp->next;
 	free(tmp);
 
+	(*queue)->count--;
+
 	return;
+}
+
+uint8_t isEventQueued(EventQueue *queue){
+	if(queue->begin == NULL)
+		return 0;
+	else
+		return 1;
+}
+
+void EventInit(Event *evt){
+	evt->class = 0;
+	evt->source = 0;
+	evt->ptr_data = NULL;
+	evt->size_data = 0;
 }
