@@ -39,6 +39,7 @@ typedef struct {
   uint8_t	rotationdirection;
 } UEB_StatusType;
 
+
 typedef struct {
   uint8_t	status;				//the actual status of the UEB: 0 = INIT; 1 = RUN; 2 = STOP; 3 = NOPARAM; 4 = ERROR...
   float_t	bufferSum_IHB1;
@@ -53,58 +54,109 @@ typedef struct {
   int32_t	rotvelo;
 } UEB_MeasuresType;
 
+
 //Commands to get and set Status of the UEB
 static const char UEBREADY[] = "?";								//returns the actual state of the UEB
 
 //Commandtree
 /*
  * UEB:--
- * 		|		//Configuration commands
- * 	   CONF-->
  * 		|
+ * 	   SOFTSTART------------------------>ENAB
+ * 		|		   						|
+ * 		|								 DUR
  * 		|
- * 		|		//Status commands
- * 	  STATUS-->
+ * 	  CONFIG---------------------------->TRDHARM
+ * 	  	|								|
+ * 	  	|								ROT
  * 	  	|
- * 	  	|
- * 	  	|
+ *		PARAM--------------------------->VCC
+ *		|								|
+ *		|								VOUT
+ *		|								|
+ *		|								FREQ
+ *		|
+ *		SYS----------------------------->ENAB
  *
+ *	PERI:--
+ *		  |
+ *		  ADC--------------------------->SYST
+ *		  |								|
+ *		  |								CH-->FREQ
+ *		  |									|
+ *		  |									ENAB
+ *		  |
+ *		  RES--------------------------->DEV-->STAT-->ENAB
+ *		  |										|
+ *		  |										CONFIG-->THRES
+ *		  |												|
+ *		  |												LOS
+ *		  |												|
+ *		  |												DOS-->OVERRANGE
+ *		  |												|	 |
+ *		  |												|	 MISMATCH
+ *		  |												|	 |
+ *		  |												|	 RESET-->MIN
+ *		  |												|			|
+ *		  |												|			MAX
+ *		  |												|
+ *		  |												LOT-->HIGH
+ *		  |												|	 |
+ *		  |												|	  LOW
+ *		  |												|
+ *		  |												EX-->FREQ
+ *		  |												|
+ *		  |												PLR-->ENAB
+ *		  |												|
+ *		  |												HYST-->ENAB
+ *		  |												|
+ *		  |												RES-->ENCOD
+ *		  |													 |
+ *		  |													  RDC
+ *		  |
+ *		  INKR
  *
+ *	DT TODO TODO
  *
  *
  *
  */
-static const char GETMEASURES[] = "UEB_start_measure";			//starts the measure and pushes all data to the serial port
-static const char STOPMEASURES[] = "UEB_stop_measure";			//stops pushing data to the serial port
+//often used commands in different trees
 
-//Command to get Parameters of the UEB
-static const char GETPARAMETERS[] = "UEB_get_params";
-static const char GETSTATUS[] = "UEB_status:";
 
-//Commands to set Parameters on the UEB
-static const char SETPARAMETERS[] = "UEB_set_params";			//
-//static const char SAVEPARAMETERS[] = "UEB_save_params";
-static const char SETVCCVOLTAGE[] = "UEB_Vcc:";				//The value must be in
-static const char SETOUTVOLTAGE[] = "UEB_Vout:";
-
-static const char SETFREQUENCY[] = "UEB_freq:";
-static const char SETROTATION[] = "UEB_rot:";
-static const char SETTHIRDHARMONIC[] = "UEB_thirdharm:";
-static const char SETSOFTSTART[] = "UEB_softstart:";
-static const char SETSOFTSTARTDURATION[] = "UEB_softdur:";
-static const char SETMAXCURRENT[] = "UEB_maxCurr:";
-static const char SETNUMAVERAGED[] = "UEB_averagednum:";
-
+//
+//static const char GETMEASURES[] = "UEB_start_measure";			//starts the measure and pushes all data to the serial port
+//static const char STOPMEASURES[] = "UEB_stop_measure";			//stops pushing data to the serial port
+//
+////Command to get Parameters of the UEB
+//static const char GETPARAMETERS[] = "UEB_get_params";
+//static const char GETSTATUS[] = "UEB_status:";
+//
+////Commands to set Parameters on the UEB
+//static const char SETPARAMETERS[] = "UEB_set_params";			//
+////static const char SAVEPARAMETERS[] = "UEB_save_params";
+//static const char SETVCCVOLTAGE[] = "UEB_Vcc:";				//The value must be in
+//static const char SETOUTVOLTAGE[] = "UEB_Vout:";
+//
+//static const char SETFREQUENCY[] = "UEB_freq:";
+//static const char SETROTATION[] = "UEB_rot:";
+//static const char SETTHIRDHARMONIC[] = "UEB_thirdharm:";
+//static const char SETSOFTSTART[] = "UEB_softstart:";
+//static const char SETSOFTSTARTDURATION[] = "UEB_softdur:";
+//static const char SETMAXCURRENT[] = "UEB_maxCurr:";
+//static const char SETNUMAVERAGED[] = "UEB_averagednum:";
+//
 static const char DELIMITER_FULLMESSAGE[] = ";";
 static const char DELIMITER_PARTMESSAGE[] = ":";
-static const char UEB_VERSION[] = "UEB_Version_1.0";
-
-static const char UEB_IN_CONFIG_MODE[] = "UEB_in_config_mode";
-static const char UEB_CONFIG_SAVED[] = "UEB_config_saved";
+//static const char UEB_VERSION[] = "UEB_Version_1.0";
+//
+//static const char UEB_IN_CONFIG_MODE[] = "UEB_in_config_mode";
+//static const char UEB_CONFIG_SAVED[] = "UEB_config_saved";
 
 //Functions
 
-void getNewStatus(UEB_StatusType *uebstatus);
 
+void divideMessage(uint8_t *USBbuffer);
+void getNewStatus(UEB_StatusType *uebstatus);
 
 #endif /* INC_INTERFACE_DECODER_H_ */
