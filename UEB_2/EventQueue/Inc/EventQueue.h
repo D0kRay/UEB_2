@@ -20,17 +20,27 @@ typedef struct event{
 	char class;
 	char source;
 
+	void* ptr_data;
+	uint32_t size_data;
+
 }Event;
 
-typedef struct queue{
+typedef struct element{
 	Event data;
-	struct queue *next;
-	struct queue *prev;
+	struct element *next;
+}EventElement;
+
+typedef struct queue{
+	uint32_t count;
+	EventElement *begin;
+	EventElement *endof;
 }EventQueue;
 
 EventQueue* EventQueue_Init();
-void addEvent(EventQueue **endofQueue, Event *evt);
-Event getEvent(EventQueue *endofQueue);
+void addEvent(EventQueue **queue, Event *evt);
+void getEvent(EventQueue **queue, Event *evt);
+uint8_t isEventQueued(EventQueue *queue);
+void EventInit(Event *evt);
 
 
 #ifdef __cplusplus

@@ -30,7 +30,7 @@ uint8_t Is_Receive_Complete();
 uint8_t IsBufferEmpty(uint8_t buffernumber);
 
 void get_Receive_Message(uint8_t *Buffer, uint32_t size);
-void setBuffer(uint8_t *data, uint8_t size);
+void setBuffer(uint8_t *data, uint32_t size);
 void Transmit_Data();
 
 

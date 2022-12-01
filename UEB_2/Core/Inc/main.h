@@ -36,7 +36,6 @@ extern "C" {
 #include "DT_interface.h"
 #include "DT_runable.h"
 #include "EventQueue.h"
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

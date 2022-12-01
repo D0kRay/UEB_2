@@ -38,8 +38,9 @@ typedef uint8_t DT_status;
  *
  */
 typedef struct{
-	uint8_t ID;					// 20 character for the name of the parameter
-	uint8_t Counter;			// 256 IDs for the parameter
+	uint8_t ID;					// 256 IDS for the parameter
+	uint8_t Counter;			// Counter for the data package sent
+	uint8_t MaxPackages;		// Number of packages to be sent
 	void* Address;				// 32 Bit Address
 	uint32_t Size;				// Size of the parameter in Byte
 }Dataset;

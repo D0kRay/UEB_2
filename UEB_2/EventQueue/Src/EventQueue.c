@@ -9,49 +9,69 @@
 
 EventQueue* EventQueue_Init(){
 
-	EventQueue *endofQueue = NULL;
-
-	return endofQueue;
+	EventQueue *queue = malloc(sizeof(EventQueue));
+	queue->begin = NULL;
+	queue->endof = NULL;
+	queue->count = 0;
+	return queue;
 }
 
-void addEvent(EventQueue **endofQueue, Event *evt){
+void addEvent(EventQueue **queue, Event *evt){
+
+	if(*queue == NULL)
+		return;
 
 	if(evt == NULL)
 		return;
 
-	EventQueue *newElement = malloc (sizeof(EventQueue));
+	EventElement *newElement = malloc (sizeof(EventElement));
 
 	if(newElement != NULL){
 		newElement->data = *evt;
 		newElement->next = NULL;
-		newElement->prev = *endofQueue;
 
-		*endofQueue = newElement;
+		if((*queue)->begin == NULL){
+			(*queue)->begin = newElement;
+			(*queue)->endof = newElement;
+		}else{
+			(*queue)->endof->next = newElement;
+			(*queue)->endof = newElement;
+		}
+
+		(*queue)->count++;
 	}
 	return;
 }
 
-Event getEvent(EventQueue *endofQueue){
+void getEvent(EventQueue **queue, Event *evt){
 
-	Event evt;
+	if(*queue == NULL)
+		return;
 
-	if(endofQueue == NULL){
-		evt.class = 0;
-		evt.source = 0;
-		return evt;
-	}
+	if((*queue)->begin == NULL)
+		return;
 
-	evt = endofQueue->data;
+	*evt = (*queue)->begin->data;
 
-	if(endofQueue->prev == NULL){
-		free(endofQueue);
-		endofQueue = NULL;
-	}
-	else{
-		endofQueue = endofQueue->prev;
-		free(endofQueue->next);
-	}
+	EventElement *tmp = (*queue)->begin;
+	(*queue)->begin = tmp->next;
+	free(tmp);
 
+	(*queue)->count--;
 
-	return evt;
+	return;
+}
+
+uint8_t isEventQueued(EventQueue *queue){
+	if(queue->begin == NULL)
+		return 0;
+	else
+		return 1;
+}
+
+void EventInit(Event *evt){
+	evt->class = 0;
+	evt->source = 0;
+	evt->ptr_data = NULL;
+	evt->size_data = 0;
 }
