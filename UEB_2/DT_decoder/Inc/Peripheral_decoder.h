@@ -10,6 +10,6 @@
 
 
 
-static const char xxxxx
+//static const char xxxxx
 
 #endif /* INC_PERIPHERAL_DECODER_H_ */
