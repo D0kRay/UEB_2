@@ -1,5 +1,0 @@
-../DT_decoder/Src/DT_decoder.c:22:6:getFloatOfMessage	32	static
-../DT_decoder/Src/DT_decoder.c:30:6:setUEBValues	16	static
-../DT_decoder/Src/DT_decoder.c:63:6:decodeMessage	128	static
-../DT_decoder/Src/DT_decoder.c:101:6:divideMessage	24	static
-../DT_decoder/Src/DT_decoder.c:113:6:getNewStatus	24	static

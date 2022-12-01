@@ -1,3 +1,0 @@
-../DT_protocol/Src/DT_interface.c:12:11:DT_Init	24	static
-../DT_protocol/Src/DT_interface.c:32:11:DT_Start	16	static
-../DT_protocol/Src/DT_interface.c:43:7:DT_Init_Memory	24	static

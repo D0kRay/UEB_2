@@ -387,7 +387,7 @@ int main(void)
 		  .softstart = 0,
 		  .softstartduration = 1.0,
 		  .maxcurrent = 1.0,
-		  .averagenum = 20
+		  .averagenum = 24
   };
   //UEB_MeasuresType uebmeasure;
 

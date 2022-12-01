@@ -1,3 +1,11 @@
+.metadata/
+Debug/
+Release/
+UEB_2/.metadata
+UEB_2/.settings
+UEB_2/Debug
+UEB_2/Release
+
 # Prerequisites
 *.d
 

@@ -1,6 +1,0 @@
-../Drivers/Communication/com_provider.c:22:9:is_Receive_Complete	8	static
-../Drivers/Communication/com_provider.c:27:9:is_Transmit_Complete	8	static
-../Drivers/Communication/com_provider.c:38:6:get_Receive_Message	16	static
-../Drivers/Communication/com_provider.c:50:9:IsBufferEmpty	24	static
-../Drivers/Communication/com_provider.c:61:6:setBuffer	16	static
-../Drivers/Communication/com_provider.c:75:6:Transmit_Data	8	static
