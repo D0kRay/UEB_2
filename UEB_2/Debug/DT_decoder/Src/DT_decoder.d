@@ -1,5 +1,5 @@
-Drivers/Communication/communication.o: \
- ../Drivers/Communication/communication.c ../USB_DEVICE/App/usb_device.h \
+DT_decoder/Src/DT_decoder.o: ../DT_decoder/Src/DT_decoder.c \
+ ../USB_DEVICE/App/usb_device.h \
  ../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h \
  ../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h \
  ../Drivers/CMSIS/Include/core_cm7.h \
@@ -51,7 +51,7 @@ Drivers/Communication/communication.o: \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
- ../Drivers/Communication/communication.h
+ ../DT_decoder/Inc/DT_decoder.h
 ../USB_DEVICE/App/usb_device.h:
 ../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h:
 ../Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h:
@@ -109,4 +109,4 @@ Drivers/Communication/communication.o: \
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h:
-../Drivers/Communication/communication.h:
+../DT_decoder/Inc/DT_decoder.h:

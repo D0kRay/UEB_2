@@ -1,4 +1,19 @@
-15:52:36 **** Incremental Build of configuration Debug for project UEB_2 ****
+08:27:02 **** Incremental Build of configuration Debug for project UEB_2 ****
+make -j8 all 
+arm-none-eabi-gcc "../DT_decoder/Src/DT_decoder.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32H743xx -DDEBUG -c -I../Core/Inc -I../DT_decoder/Inc -I../Drivers/Communication -I../Drivers/STM32H7xx_HAL_Driver/Inc -I../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32H7xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I../DT_protocol/Inc -I../EventQueue/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"DT_decoder/Src/DT_decoder.d" -MT"DT_decoder/Src/DT_decoder.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "DT_decoder/Src/DT_decoder.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DSTM32H743xx -DDEBUG -c -I../Core/Inc -I../DT_decoder/Inc -I../Drivers/Communication -I../Drivers/STM32H7xx_HAL_Driver/Inc -I../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32H7xx/Include -I../Drivers/CMSIS/Include -I../USB_DEVICE/App -I../USB_DEVICE/Target -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc -I../DT_protocol/Inc -I../EventQueue/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "UEB_2.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\pasik\Documents\UEB_MC\UEB_2\UEB_2\STM32H743IITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="UEB_2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: UEB_2.elf
+ 
+arm-none-eabi-size   UEB_2.elf 
+arm-none-eabi-objdump -h -S  UEB_2.elf  > "UEB_2.list"
+   text	   data	    bss	    dec	    hex	filename
+  74888	  15368	  12160	 102416	  19010	UEB_2.elf
+Finished building: default.size.stdout
+ 
+Finished building: UEB_2.list
+ 
+08:53:36 **** Incremental Build of configuration Debug for project UEB_2 ****
 make -j8 all 
 arm-none-eabi-size   UEB_2.elf 
    text	   data	    bss	    dec	    hex	filename

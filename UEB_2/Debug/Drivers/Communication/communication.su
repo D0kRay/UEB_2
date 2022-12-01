@@ -1,5 +1,0 @@
-../Drivers/Communication/communication.c:22:6:getFloatOfMessage	32	static
-../Drivers/Communication/communication.c:30:6:setUEBValues	16	static
-../Drivers/Communication/communication.c:63:6:decodeMessage	128	static
-../Drivers/Communication/communication.c:101:6:divideMessage	24	static
-../Drivers/Communication/communication.c:113:6:getNewStatus	24	static

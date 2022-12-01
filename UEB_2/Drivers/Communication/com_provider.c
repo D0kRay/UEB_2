@@ -14,17 +14,17 @@
 static uint8_t buffer_in_use = 0;
 volatile uint8_t receive_pending = 0;
 uint8_t once = 0;
-uint8_t buffer0status = 0;	//represent the actual status of the buffer (0 = buffer empty and ready for transmit, 1 = buffer full and ready for transmit)
+uint8_t buffer0status = 0;	//represent the actual status of the buffer (0 = buffer empty and not ready for transmit, 1 = buffer full and ready for transmit)
 uint8_t buffer1status = 1;	//
 uint8_t buffer0[BUFFERSIZE];
 uint8_t buffer1[BUFFERSIZE];
 
-uint8_t is_receive_complete()
+uint8_t is_Receive_Complete()
 {
 	return CDC_Receive_Complete_FS();
 }
 
-uint8_t is_transmit_complete()
+uint8_t is_Transmit_Complete()
 {
 	return CDC_Transmit_Complete_FS();
 }
@@ -35,9 +35,9 @@ uint8_t is_transmit_complete()
  * @param Buffer
  * @param size
  */
-void get_receive_message(uint8_t *Buffer, uint32_t size)
+void get_Receive_Message(uint8_t *Buffer, uint32_t size)
 {
-	if(is_receive_complete() != 0) {
+	if(is_Receive_Complete() != 0) {
 		if(size > CDC_RX_BUFFER_SIZE){
 			memcpy(Buffer, CDC_Receive_Data(), CDC_RX_BUFFER_SIZE);
 		} else {
@@ -47,7 +47,7 @@ void get_receive_message(uint8_t *Buffer, uint32_t size)
 	}
 }
 
-uint8_t isBufferEmpty(uint8_t buffernumber)
+uint8_t IsBufferEmpty(uint8_t buffernumber)
 {
 	uint8_t status = 0;
 	if(buffernumber == 1) {
@@ -69,12 +69,12 @@ void setBuffer(uint8_t *data, uint8_t size)
 		memcpy(buffer0, data, size);
 		buffer0status = 1;
 	}
-	transmit_data();
+	Transmit_Data();
 }
 
-void transmit_data()
+void Transmit_Data()
 {
-	if(is_transmit_complete()) {
+	if(is_Transmit_Complete()) {
 		if(buffer_in_use == 0 && buffer0status == BUFFER_READY){
 			if(CDC_Transmit_FS(buffer0, BUFFERSIZE) == USBD_OK){
 				buffer_in_use = 1;

@@ -23,6 +23,7 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+DT_decoder/Src \
 DT_protocol/Src \
 Drivers/Communication \
 Drivers/STM32H7xx_HAL_Driver/Src \

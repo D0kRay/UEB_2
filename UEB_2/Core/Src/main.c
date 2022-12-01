@@ -26,7 +26,7 @@
 #include "math.h"
 #include "stm32h743xx.h"
 #include "com_provider.h"
-#include "communication.h"
+#include "DT_decoder.h"
 
 /* USER CODE END Includes */
 
