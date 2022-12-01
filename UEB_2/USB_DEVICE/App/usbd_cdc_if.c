@@ -91,19 +91,17 @@ extern IWDG_HandleTypeDef 	hiwdg1;
 /* Create buffer for reception and transmission           */
 /* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-
-//uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
+uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 
 /** Data to send over USB CDC are stored in this buffer   */
-uint8_t UserTxBuffer1_FS[CDC_TX_BUFFER_SIZE];
-
-//uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 volatile uint16_t rxBufferTailPos = 0; // Receive buffer read position
 volatile uint16_t rxBufferHeadPos = 0; // Receive buffer write position
 volatile uint8_t rxBufferFull = 0;	// If the Receive Buffer is full, this Byte switches to 1
 uint8_t UserRxBuffer1_FS[CDC_RX_BUFFER_SIZE];
+uint8_t UserTxBuffer1_FS[CDC_RX_BUFFER_SIZE];
 uint8_t UserRxBuffer2_FS[64];
 uint8_t transmit_complete = 1;
 /* USER CODE END PRIVATE_VARIABLES */

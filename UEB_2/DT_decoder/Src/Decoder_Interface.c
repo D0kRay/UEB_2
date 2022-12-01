@@ -1,13 +1,14 @@
 /*
- * DT_decoder.c
+ * Decoder_Interface.c
  *
- *  Created on: 01.12.2022
+ *  Created on: Dec 1, 2022
  *      Author: pasik
  */
 
+
 #include "usb_device.h"
 #include "com_provider.h"
-#include "DT_decoder.h"
+#include "Decoder_Interface.h"
 
 char tokenizebuffer[BUFFERSIZE];
 char* token;
@@ -119,4 +120,5 @@ void getNewStatus(UEB_StatusType *uebstatus)
 		memset(receivebuffer, '\0', BUFFERSIZE);
 	}
 }
+
 

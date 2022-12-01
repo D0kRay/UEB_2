@@ -25,8 +25,8 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "stm32h743xx.h"
+#include "Decoder_Interface.h"
 #include "com_provider.h"
-#include "DT_decoder.h"
 
 /* USER CODE END Includes */
 
