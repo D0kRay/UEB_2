@@ -58,20 +58,6 @@ uint8_t IsBufferEmpty(uint8_t buffernumber)
 	return status;
 }
 
-void setBuffer(uint8_t *data, uint32_t size)
-{
-	if(buffer_in_use == 0) {
-		memset(buffer1, 0x00, sizeof(buffer1));
-		memcpy(buffer1, data, size);
-		buffer1status = 1;
-	} else {
-		memset(buffer0, 0x00, sizeof(buffer0));
-		memcpy(buffer0, data, size);
-		buffer0status = 1;
-	}
-	Transmit_Data();
-}
-
 void Transmit_Data()
 {
 	if(is_Transmit_Complete()) {
@@ -94,5 +80,21 @@ void Transmit_Data()
 		}
 	}
 }
+
+void setBuffer(uint8_t *data, uint32_t size)
+{
+	if(buffer_in_use == 0) {
+		memset(buffer1, 0x00, sizeof(buffer1));
+		memcpy(buffer1, data, size);
+		buffer1status = 1;
+	} else {
+		memset(buffer0, 0x00, sizeof(buffer0));
+		memcpy(buffer0, data, size);
+		buffer0status = 1;
+	}
+	Transmit_Data();
+}
+
+
 
 

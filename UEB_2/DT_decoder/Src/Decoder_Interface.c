@@ -16,13 +16,13 @@ char tokenizebuffer[BUFFERSIZE];
 char* token;
 
 UEB_StatusType* pUEB_status;
+EventQueue* pMainEventQueue;
+EventQueue* pUSBEventQueue;
+EventQueue* pDataTransmissionEventQueue;
 
 uint8_t receivebuffer[BUFFERSIZE];
-uint8_t error = 0;
 
-char* token;
 
-uint8_t mnumber = 0;
 
 void getFloatOfMessage(char *message, char *commandstring, float value)
 {
@@ -35,63 +35,69 @@ void getFloatOfMessage(char *message, char *commandstring, float value)
 void decodeUEBMessage(char* message)
 {
 	if(strstr(message, UEB) != NULL) {
-
+		message = message + strlen(UEB);
 		if(strstr(message, SOFTSTART) != NULL){
-
+			message = message + strlen(SOFTSTART);
 			if(strstr(message, D_ENABLE) != NULL) {
-
-			} else if (strstr(message, FREQUENCY) != NULL) {
-
+				getFloatOfMessage(message, (char *)D_ENABLE, pUEB_status->softstart);
+			} else if (strstr(message, DURATION) != NULL) {
 				if (strstr(message, VALUE) != NULL) {
-
+					getFloatOfMessage(message, (char *)VALUE, pUEB_status->softstartduration);
 				}
 
 			}
 		} else if(strstr(message, CONFIGURATION) != NULL){
-
+			message = message + strlen(CONFIGURATION);
 			if(strstr(message, TRDHARMONIC) != NULL) {
-
+				getFloatOfMessage(message, (char *)TRDHARMONIC, pUEB_status->thirdharmonic);
 			} else if (strstr(message, ROTATION) != NULL) {
-
+				getFloatOfMessage(message, (char *)ROTATION, pUEB_status->rotationdirection);
 			}
 
 		} else if(strstr(message, PARAMETER) != NULL){
+			message = message + strlen(PARAMETER);
 			if(strstr(message, VCC) != NULL) {
-
+				message = message + strlen(VCC);
 				if (strstr(message, VALUE) != NULL) {
-
+					getFloatOfMessage(message, (char *)VALUE, pUEB_status->vccvoltage);
 				}
 
 			} else if (strstr(message, VOUT) != NULL) {
-
+				message = message + strlen(VOUT);
 				if (strstr(message, VALUE) != NULL) {
-
+					getFloatOfMessage(message, (char *)VALUE, pUEB_status->outvoltage);
 				}
 
 			} else if (strstr(message, FREQUENCY) != NULL) {
-
+				message = message + strlen(FREQUENCY);
 				if (strstr(message, VALUE) != NULL) {
+					getFloatOfMessage(message, (char *)VALUE, pUEB_status->frequency);
+				}
 
+			}else if (strstr(message, CURRENT) != NULL) {
+				message = message + strlen(CURRENT);
+				if (strstr(message, VALUE) != NULL) {
+					getFloatOfMessage(message, (char *)VALUE, pUEB_status->maxcurrent);
 				}
 
 			}
 
 		}
 	} else {
-		error = 1;
+		setBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
 	}
 }
 
 void decodePeripheralMessage(char* message)
 {
 	if(strstr(message, PERIPHERAL) != NULL) {
-
+		message = message + strlen(UEB);
 		if(strstr(message, ADC) != NULL){
-
+			message = message + strlen(UEB);
 			if(strstr(message, SYSTEM) != NULL) {
-
+				message = message + strlen(UEB);
 			} else if (strstr(message, CHANNEL) != NULL) {
-
+				message = message + strlen(UEB);
 				if (strstr(message, FREQUENCY) != NULL) {
 
 				} else if (strstr(message, D_ENABLE) != NULL) {
@@ -100,27 +106,29 @@ void decodePeripheralMessage(char* message)
 
 			}
 		} else if(strstr(message, RES) != NULL){
+			message = message + strlen(UEB);
 			if(strstr(message, DEVICE) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, STAT) != NULL) {
-
+					message = message + strlen(UEB);
 					if (strstr(message, D_ENABLE) != NULL) {
 
 					}
 
 				} else if (strstr(message , CONFIG) != NULL) {
-
+					message = message + strlen(UEB);
 					if (strstr(message, THRES) != NULL) {
-
+						message = message + strlen(UEB);
 					} else if (strstr(message, LOS) != NULL) {
 
 					} else if (strstr(message, DOS) != NULL) {
-
+						message = message + strlen(UEB);
 						if (strstr(message, OVERRANGE) != NULL) {
 
 						} else if (strstr(message, MISMATCH) != NULL) {
 
 						} else if (strstr(message, D_RESET) != NULL) {
-
+							message = message + strlen(UEB);
 							if (strstr(message, MIN) != NULL) {
 
 							} else if (strstr(message, MAX) != NULL) {
@@ -128,7 +136,7 @@ void decodePeripheralMessage(char* message)
 							}
 						}
 					} else if (strstr(message, LOT) != NULL) {
-
+						message = message + strlen(UEB);
 						if (strstr(message, MIN) != NULL) {
 
 						} else if (strstr(message, MAX) != NULL) {
@@ -136,18 +144,22 @@ void decodePeripheralMessage(char* message)
 						}
 
 					} else if (strstr(message, EXCITATION) != NULL) {
+						message = message + strlen(UEB);
 						if (strstr(message, FREQUENCY) != NULL) {
 
 						}
 					} else if (strstr(message, PHASELOCKRANGE) != NULL) {
+						message = message + strlen(UEB);
 						if (strstr(message, D_ENABLE) != NULL) {
 
 						}
 					} else if (strstr(message, HYSTERESIS) != NULL) {
+						message = message + strlen(UEB);
 						if (strstr(message, D_ENABLE) != NULL) {
 
 						}
 					} else if (strstr(message, RES) != NULL) {
+						message = message + strlen(UEB);
 						if (strstr(message, ENCODER) != NULL) {
 
 						} else if (strstr(message, RDC) != NULL) {
@@ -158,29 +170,35 @@ void decodePeripheralMessage(char* message)
 				}
 			}
 		} else if(strstr(message, INKREMENTAL) != NULL){
+			message = message + strlen(UEB);
 			if(strstr(message, VCC) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, VALUE) != NULL) {
 
 				}
 			} else if (strstr(message, VOUT) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, VALUE) != NULL) {
 
 				}
 			} else if (strstr(message, FREQUENCY) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, VALUE) != NULL) {
 
 				}
 			}
 		}
 	} else {
-		error = 1;
+		setBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
 	}
 }
 
 void decodeDataTransmissionMessage(char* message)
 {
 	if(strstr(message, UEB) != NULL) {
+		message = message + strlen(UEB);
 		if(strstr(message, SOFTSTART) != NULL){
+			message = message + strlen(UEB);
 			if(strstr(message, D_ENABLE) != NULL) {
 
 			} else if (strstr(message, FREQUENCY) != NULL) {
@@ -189,100 +207,51 @@ void decodeDataTransmissionMessage(char* message)
 				}
 			}
 		} else if(strstr(message, CONFIGURATION) != NULL){
+			message = message + strlen(UEB);
 			if(strstr(message, TRDHARMONIC) != NULL) {
 
 			} else if (strstr(message, ROTATION) != NULL) {
 
 			}
 		} else if(strstr(message, PARAMETER) != NULL){
+			message = message + strlen(UEB);
 			if(strstr(message, VCC) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, VALUE) != NULL) {
 
 				}
 			} else if (strstr(message, VOUT) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, VALUE) != NULL) {
 
 				}
 			} else if (strstr(message, FREQUENCY) != NULL) {
+				message = message + strlen(UEB);
 				if (strstr(message, VALUE) != NULL) {
 
 				}
 			}
 		}
 	} else {
-		error = 1;
+		setBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
 	}
 }
 
+void transmit_info()
+{
+	uint8_t* string;
+	string = malloc(1024);
+	memset(string, '\0', 1024);
 
-//uint8_t UEB_divideMessage(char *message, const char *delimiter, UEB_StatusType *uebstatus)
-//{
-////	strcpy(tokenizebuffer, (const char *)message);
-//	uint8_t i = 0;
-//	token = strtok(message, delimiter);
-//	while (token != NULL) {
-//		switch (mnumber) {
-//			case 0:
-//				*message = *token;
-//				break;
-//			case 1:
-//				*message = *token;
-//				break;
-//			case 2:
-//				*message = *token;
-//				break;
-//			case 3:
-//				*message = *token;
-//				break;
-//			case 4:
-//				*message = *token;
-//				break;
-//			default:
-//				break;
-//		}
-//		mnumber++;
-//		token = strtok(NULL, delimiter);
-//		i++;
-//	}
-//	decodeUEBMessage();
-//
-//	return error;
-//}
-
-
-
-//void setUEBValues(char *message)
-//{
-//	if(strstr(message, SETVCCVOLTAGE) != NULL){
-//		getFloatOfMessage(message, (char *)SETVCCVOLTAGE, pUEB_status.vccvoltage);
-//	} else if(strstr(message, SETOUTVOLTAGE) != NULL){
-//		getFloatOfMessage(message, (char *)SETOUTVOLTAGE, pUEB_status.outvoltage);
-//	} else if(strstr(message, SETFREQUENCY) != NULL){
-//		getFloatOfMessage(message, (char *)SETFREQUENCY, pUEB_status.frequency);
-//	} else if(strstr(message, SETROTATION) != NULL){
-//		getFloatOfMessage(message, (char *)SETROTATION, pUEB_status.rotationdirection);
-//	} else if(strstr(message, SETTHIRDHARMONIC) != NULL){
-//		getFloatOfMessage(message, (char *)SETTHIRDHARMONIC, pUEB_status.thirdharmonic);
-//	} else if(strstr(message, SETSOFTSTART) != NULL){
-//		getFloatOfMessage(message, (char *)SETSOFTSTART, pUEB_status.softstart);
-//	} else if(strstr(message, SETSOFTSTARTDURATION) != NULL){
-//		getFloatOfMessage(message, (char *)SETSOFTSTARTDURATION, pUEB_status.softstartduration);
-//	} else if(strstr(message, SETMAXCURRENT) != NULL){
-//		getFloatOfMessage(message, (char *)SETMAXCURRENT, pUEB_status.maxcurrent);
-//	} else if(strstr(message, SETNUMAVERAGED) != NULL){
-//		getFloatOfMessage(message, (char *)SETNUMAVERAGED, pUEB_status.averagenum);
-//	} else {
-//		setBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
-//	}
-//}
-
-//void getUint32OfMessage(char *message, char *commandstring, uint32_t value)
-//{
-//	char *s;
-//	s = strstr(message, commandstring);
-//	s = s + strlen(commandstring);
-//	value = (uint32_t)strtod(s, NULL);
-//}
+	snprintf((char*)string, 1024, "%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d\r",
+			STAT, (uint8_t)pUEB_status->status, VCC, (uint8_t)pUEB_status->vccvoltage,
+			VOUT, (uint8_t)pUEB_status->outvoltage, FREQUENCY, (uint8_t)pUEB_status->frequency,
+			ROTATION, (uint8_t)pUEB_status->rotationdirection, TRDHARMONIC, (uint8_t)pUEB_status->thirdharmonic,
+			SOFTSTART, (uint8_t)pUEB_status->softstart, DURATION, (uint8_t)pUEB_status->softstartduration,
+			CURRENT, (uint8_t)pUEB_status->maxcurrent);
+	setBuffer(string, strlen((char*)string));
+	free(string);
+}
 
 void decodeMessage(char *message)
 {
@@ -292,46 +261,12 @@ void decodeMessage(char *message)
 		decodePeripheralMessage(message);
 	} else if (strstr(message, DATATRANSMISSION) != NULL) {
 		decodeDataTransmissionMessage(message);
+	}  else if (strstr(message, UEBREADY) != NULL) {
+		transmit_info();
 	}
 }
 
-//	if (strstr(message, UEBREADY) != NULL) {
-//		setBuffer((uint8_t*)UEB_VERSION, strlen(UEB_VERSION));
-//	} else if(strstr(message, GETMEASURES) != NULL){
-//		pUEB_status.status = UEB_RUN;
-//	} else if(strstr(message, STOPMEASURES) != NULL){
-//		pUEB_status.status = UEB_STOP;
-//	} else if(strstr(message, GETPARAMETERS) != NULL){
-//		uint8_t* string;
-//		string = malloc(1024);
-//
-//		snprintf((char*)string, 1024, "%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d;%s%d\r",
-//				GETSTATUS, (uint8_t)pUEB_status.status, SETVCCVOLTAGE, (uint8_t)pUEB_status.vccvoltage,
-//				SETOUTVOLTAGE, (uint8_t)pUEB_status.outvoltage, SETFREQUENCY, (uint8_t)pUEB_status.frequency,
-//				SETROTATION, (uint8_t)pUEB_status.rotationdirection, SETTHIRDHARMONIC, (uint8_t)pUEB_status.thirdharmonic,
-//				SETSOFTSTART, (uint8_t)pUEB_status.softstart, SETSOFTSTARTDURATION, (uint8_t)pUEB_status.softstartduration,
-//				SETMAXCURRENT, (uint8_t)pUEB_status.maxcurrent, SETNUMAVERAGED, (uint8_t)pUEB_status.averagenum);
-//		setBuffer(string, strlen((char*)string));
-//		free(string);
-//	} else if(strstr(message, SETPARAMETERS) != NULL){
-//		switch (pUEB_status.status) {
-//			case UEB_INIT:
-//				pUEB_status.status = UEB_INIT_FINISH;
-//				setBuffer((uint8_t*)UEB_CONFIG_SAVED, strlen(UEB_CONFIG_SAVED));
-//				break;
-//			case UEB_STOP:
-//				pUEB_status.status = UEB_INIT;
-//				setBuffer((uint8_t*)UEB_IN_CONFIG_MODE, strlen(UEB_IN_CONFIG_MODE));
-//				break;
-//			default:
-//				break;
-//		}
-//	} else {
-//		setUEBValues(message);
-//	}
-//}
-
-void divideMessage(uint8_t *buffer)
+void getMessage(uint8_t *buffer)
 {
 	strcpy(tokenizebuffer, (const char *)buffer);
 	uint8_t i = 0;
@@ -342,16 +277,25 @@ void divideMessage(uint8_t *buffer)
 		i++;
 	}
 }
-void
 
-void getNewStatus(UEB_StatusType *uebstatus)
+void provideStatus(UEB_StatusType *uebstatus)
 {
 	*pUEB_status = *uebstatus;
-	get_Receive_Message(receivebuffer, BUFFERSIZE);
-	if(receivebuffer[0] != '\0') {
-		divideMessage(receivebuffer);
-		memset(receivebuffer, '\0', BUFFERSIZE);
-	}
+}
+
+void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue)
+{
+	pMainEventQueue = main_queue;
+	pUSBEventQueue = usb_queue;
+	pDataTransmissionEventQueue = datatransmission_queue;
+}
+
+void setStatus()
+{
+	Event evt;
+	evt.class = 0;
+	evt.source = 0;
+	addEvent(&pMainEventQueue, &evt);
 }
 
 

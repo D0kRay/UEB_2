@@ -391,6 +391,8 @@ int main(void)
 		  .maxcurrent = 1.0,
 		  .averagenum = 24
   };
+
+
   //UEB_MeasuresType uebmeasure;
 
 
@@ -410,7 +412,7 @@ int main(void)
 		  getEvent(&Q_Main, &evt);
 		  switch(evt.source){
 		  case 0:
-
+			  setParameters(&uebstatus);
 			  break;
 
 		  case 1:
@@ -426,14 +428,21 @@ int main(void)
 		  Event evt;
 		  getEvent(&Q_USB, &evt);
 		  switch(evt.source){
-		  case 0:
+		  case 0:	//Transmit data from DT_Transmission over USB
 			  setBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
 			  break;
-
 		  case 1:
+//			  get_Receive_Message(Buffer, size); TODO receive message entweder in decoder oder hier????
+			  break;
+		  case 2:
 
 			  break;
+		  case 3:
 
+			  break;
+		  case 4:
+
+			  break;
 		  default:
 			  break;
 		  }

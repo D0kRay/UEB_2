@@ -64,17 +64,19 @@ static const char UEBREADY[] = "?";								//returns the actual state of the UEB
  * 		|
  * 	   SOFTSTART------------------------>ENAB
  * 		|		   						|
- * 		|								 DUR
+ * 		|								 DUR-->VALUE
  * 		|
  * 	  CONFIG---------------------------->TRDHARM
  * 	  	|								|
  * 	  	|								ROT
  * 	  	|
- *		PARAM--------------------------->VCC
+ *		PARAM--------------------------->VCC-->VALUE
  *		|								|
- *		|								VOUT
+ *		|								VOUT-->VALUE
  *		|								|
- *		|								FREQ
+ *		|								FREQ-->VALUE
+ *		|								|
+ *		|								CURR-->VALUE
  *		|
  *		SYS----------------------------->ENAB
  *
@@ -155,8 +157,11 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 
 //Functions
 
-
-void divideMessage(uint8_t *USBbuffer);
+void getMessage(uint8_t *USBbuffer);
 void getNewStatus(UEB_StatusType *uebstatus);
+
+void provideStatus(UEB_StatusType *uebstatus);
+void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue);
+void setStatus();
 
 #endif /* INC_INTERFACE_DECODER_H_ */
