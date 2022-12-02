@@ -15,7 +15,7 @@ uint8_t* DT_fillBuffer(list_t *DT_list){
 	uint8_t* Buffer = malloc(sizeof(DT_BUFFER_SIZE));
 	if(Buffer == NULL)
 		return NULL;
-	memset(Buffer, 0x00, DT_BUFFER_SIZE);
+	memset(Buffer, '0', DT_BUFFER_SIZE);
 
 	uint8_t StatusByte;
 	list_node_t *dt_set;
@@ -34,19 +34,21 @@ uint8_t* DT_fillBuffer(list_t *DT_list){
 			else
 				count++;
 
-			memcpy(&Buffer[i + ID_OS], 			&dt_set->val->ID,			sizeof(uint8_t));
-			memcpy(&Buffer[i + Count_OS], 		&dt_set->val->Counter,		sizeof(uint8_t));
-			memcpy(&Buffer[i + MaxPackage_OS], 	&dt_set->val->MaxPackages,	sizeof(uint8_t));
+			memcpy(Buffer + i + ID_OS, 			&dt_set->val->ID,			sizeof(uint8_t));
+			memcpy(Buffer + i + Count_OS, 		&dt_set->val->Counter,		sizeof(uint8_t));
+			memcpy(Buffer + i + MaxPackage_OS, 	&dt_set->val->MaxPackages,	sizeof(uint8_t));
 
-			memcpy(&Buffer[i + Data_OS], 		dt_set->val->Address, 		DT_PACKAGE_DATA_SIZE);
+			void* temp = dt_set->val->Address + dt_set->val->Counter * DT_PACKAGE_DATA_SIZE;
+
+			memcpy(Buffer + i + Data_OS, 		temp, 		DT_PACKAGE_DATA_SIZE);
 
 			if(dt_set->val->Counter == dt_set->val->MaxPackages){
 				list_remove(DT_list, dt_set);
-				StatusByte &= DT_TC;
+				StatusByte |= DT_TC;
 			}
 			if(dt_set->val->Counter < dt_set->val->MaxPackages)
 				dt_set->val->Counter++;
-			memcpy(&Buffer[i + StatusFlags_OS], &StatusByte, sizeof(uint8_t));
+			memcpy(Buffer + i + StatusFlags_OS, &StatusByte, sizeof(uint8_t));
 		}
 
 	}

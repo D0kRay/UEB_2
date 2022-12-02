@@ -156,7 +156,8 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 //static const char UEB_CONFIG_SAVED[] = "UEB_config_saved";
 
 //Functions
-
+void createStatusEvent();
+void createInfoEvent();
 void getMessage();
 void getNewStatus(UEB_StatusType *uebstatus);
 

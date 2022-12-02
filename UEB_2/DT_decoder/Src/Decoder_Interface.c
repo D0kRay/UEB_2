@@ -86,6 +86,7 @@ void decodeUEBMessage(char* message)
 			message = message + strlen(SYSTEM);
 			if(strstr(message, D_ENABLE) != NULL) {
 				getFloatOfMessage(message, (char *)D_ENABLE, pUEB_status->status);
+				createStatusEvent();
 			}
 		}
 	} else {
@@ -265,7 +266,8 @@ void decodeMessage(char *message)
 	} else if (strstr(message, PARAMETER) != NULL) {
 		decodePeripheralMessage(message);
 	} else if (strstr(message, DATATRANSMISSION) != NULL) {
-		decodeDataTransmissionMessage(message);
+		createInfoEvent();
+		//decodeDataTransmissionMessage(message);
 	}  else if (strstr(message, UEBREADY) != NULL) {
 		transmit_info();
 	}
@@ -310,8 +312,8 @@ void createInfoEvent()
 {
 	Event *evt = malloc (sizeof(Event));
 	(*evt).class = 0;
-	(*evt).source = 0;
-	addEvent(&pUSBEventQueue, evt);
+	(*evt).source = 1;
+	addEvent(&pDataTransmissionEventQueue, evt);
 }
 
 

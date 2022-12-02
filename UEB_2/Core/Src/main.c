@@ -319,7 +319,10 @@ int main(void)
   EventQueue* Q_Main 				= EventQueue_Init();
 
   uint8_t DT_TransmissionBuffer[1024];
-  char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.⁄nThis Text will be transmitted via multiple Data packages!";
+  //char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.⁄nThis Text will be transmitted via multiple Data packages!";
+
+  char DT_TestString[] = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit ame";
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -398,7 +401,8 @@ int main(void)
 
 
   //UEB_MeasuresType uebmeasure;
-
+  provideStatus(&uebstatus);
+  provideEventQueues(Q_Main, Q_USB, Q_DataTransmission);
 
   /* USER CODE END 2 */
 
@@ -436,7 +440,7 @@ int main(void)
 			  setBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
 			  break;
 		  case 1:
-
+			  getMessage();// TODO receive message entweder in decoder oder hier????
 			  break;
 		  case 2:
 
@@ -489,8 +493,15 @@ int main(void)
 			  break;
 		  }
 	  }
-	  getMessage();// TODO receive message entweder in decoder oder hier????
+
 	  // if button pressed run dataset
+	  if(is_Receive_Complete()){
+		  Event *evt = malloc (sizeof(Event));
+		  (*evt).class = 0;
+		  (*evt).source = 1;
+
+		  addEvent(&Q_USB, evt);
+	  	  }
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
 		  Event *evt = malloc (sizeof(Event));
 		  (*evt).class = 0;

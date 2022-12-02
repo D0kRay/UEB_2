@@ -171,7 +171,7 @@ list_find(list_t *self, void *val) {
 list_node_t *
 list_at(list_t *self, int index) {
 
-	if(self->len > (unsigned)index)
+	if(self->len < (unsigned)index)
 		return NULL;
 	list_node_t *node = self->head;
 
