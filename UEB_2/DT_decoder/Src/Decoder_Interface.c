@@ -35,9 +35,9 @@ void getFloatOfMessage(char *message, char *commandstring, float value)
 void decodeUEBMessage(char* message)
 {
 	if(strstr(message, UEB) != NULL) {
-		message = message + strlen(UEB);
+		message = message + strlen(UEB)+1;
 		if(strstr(message, SOFTSTART) != NULL){
-			message = message + strlen(SOFTSTART);
+			message = message + strlen(SOFTSTART)+1;
 			if(strstr(message, D_ENABLE) != NULL) {
 				getFloatOfMessage(message, (char *)D_ENABLE, pUEB_status->softstart);
 			} else if (strstr(message, DURATION) != NULL) {
@@ -82,6 +82,11 @@ void decodeUEBMessage(char* message)
 
 			}
 
+		} else if(strstr(message, SYSTEM) != NULL){
+			message = message + strlen(SYSTEM);
+			if(strstr(message, D_ENABLE) != NULL) {
+				getFloatOfMessage(message, (char *)D_ENABLE, pUEB_status->status);
+			}
 		}
 	} else {
 		setBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
@@ -266,15 +271,18 @@ void decodeMessage(char *message)
 	}
 }
 
-void getMessage(uint8_t *buffer)
+void getMessage()
 {
-	strcpy(tokenizebuffer, (const char *)buffer);
-	uint8_t i = 0;
-	token = strtok(tokenizebuffer, DELIMITER_FULLMESSAGE);
-	while (token != NULL) {
-		decodeMessage(token);
-		token = strtok(NULL, DELIMITER_FULLMESSAGE);
-		i++;
+	if(is_Receive_Complete()) {
+		get_Receive_Message(receivebuffer, BUFFERSIZE);
+		strcpy(tokenizebuffer, (const char *)receivebuffer);
+		uint8_t i = 0;
+		token = strtok(tokenizebuffer, DELIMITER_FULLMESSAGE);
+		while (token != NULL) {
+			decodeMessage(token);
+			token = strtok(NULL, DELIMITER_FULLMESSAGE);
+			i++;
+		}
 	}
 }
 
@@ -290,12 +298,20 @@ void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueu
 	pDataTransmissionEventQueue = datatransmission_queue;
 }
 
-void setStatus()
+void createStatusEvent()
 {
-	Event evt;
-	evt.class = 0;
-	evt.source = 0;
-	addEvent(&pMainEventQueue, &evt);
+	Event *evt = malloc (sizeof(Event));
+	(*evt).class = 0;
+	(*evt).source = 0;
+	addEvent(&pMainEventQueue, evt);
+}
+
+void createInfoEvent()
+{
+	Event *evt = malloc (sizeof(Event));
+	(*evt).class = 0;
+	(*evt).source = 0;
+	addEvent(&pUSBEventQueue, evt);
 }
 
 

@@ -39,15 +39,14 @@ void get_Receive_Message(uint8_t *Buffer, uint32_t size)
 {
 	if(is_Receive_Complete() != 0) {
 		if(size > CDC_RX_BUFFER_SIZE){
-			memcpy(Buffer, CDC_Receive_Data(), CDC_RX_BUFFER_SIZE);
+			CDC_Receive_Data(Buffer, CDC_RX_BUFFER_SIZE);
 		} else {
-			memcpy(Buffer, CDC_Receive_Data(), size);
+			CDC_Receive_Data(Buffer, CDC_RX_BUFFER_SIZE);
 		}
-		memset(CDC_Receive_Data(), 0x00, CDC_RX_BUFFER_SIZE);
 	}
 }
 
-uint8_t IsBufferEmpty(uint8_t buffernumber)
+uint8_t isBufferEmpty(uint8_t buffernumber)
 {
 	uint8_t status = 0;
 	if(buffernumber == 1) {

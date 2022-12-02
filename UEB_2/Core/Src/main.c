@@ -435,7 +435,7 @@ int main(void)
 			  setBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
 			  break;
 		  case 1:
-//			  get_Receive_Message(Buffer, size); TODO receive message entweder in decoder oder hier????
+
 			  break;
 		  case 2:
 
@@ -483,7 +483,7 @@ int main(void)
 			  break;
 		  }
 	  }
-
+	  getMessage();// TODO receive message entweder in decoder oder hier????
 	  // if button pressed run dataset
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
 		  Event *evt = malloc (sizeof(Event));

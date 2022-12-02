@@ -368,11 +368,13 @@ uint8_t CDC_Transmit_Complete_FS()
 	return transmit_complete;
 }
 
-void* CDC_Receive_Data() {
+void CDC_Receive_Data(uint8_t *buffer, uint32_t buffersize)
+{
 	rxBufferHeadPos = 0;
 	rxBufferFull = 0;
+	memcpy(buffer, UserRxBuffer1_FS, buffersize);
+	memset(UserRxBuffer1_FS, '\0', CDC_RX_BUFFER_SIZE);
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-	return &UserRxBuffer1_FS;
 }
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

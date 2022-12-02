@@ -157,7 +157,7 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 
 //Functions
 
-void getMessage(uint8_t *USBbuffer);
+void getMessage();
 void getNewStatus(UEB_StatusType *uebstatus);
 
 void provideStatus(UEB_StatusType *uebstatus);
