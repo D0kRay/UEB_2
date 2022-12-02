@@ -73,8 +73,6 @@ TIM_HandleTypeDef htim5;
 /* USER CODE BEGIN PV */
 
 
-//TODO Diese Werte müssen später mit der GUI änderbar sein!!
-
 float 			frequency = 120;				//enter frequency of the 3-phase sine (range of values: 0.1Hz to 200Hz)
 float 			v_bridge_uf = 11;			//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
 float 			voltage_ref = 6;				//enter your preferred voltage for the amplitude of the sine (range of Values: 1V to 0.95*"v_bridge_uf")
@@ -388,14 +386,14 @@ int main(void)
   //Wechselberger Kirchhoff below
   UEB_StatusType uebstatus = {
 		  .status = UEB_STOP,
-		  .vccvoltage = 10.0,
-		  .outvoltage = 1.0,
-		  .frequency = 1.0,
+		  .vccvoltage = 10.45,
+		  .outvoltage = 1.545,
+		  .frequency = 1000.55,
 		  .rotationdirection = 0,
 		  .thirdharmonic = 0,
-		  .softstart = 0,
-		  .softstartduration = 1.0,
-		  .maxcurrent = 1.0,
+		  .softstart = 1,
+		  .softstartduration = 5.5,
+		  .maxcurrent = 4.53,
 		  .averagenum = 24
   };
 
@@ -403,6 +401,7 @@ int main(void)
   //UEB_MeasuresType uebmeasure;
   provideStatus(&uebstatus);
   provideEventQueues(Q_Main, Q_USB, Q_DataTransmission);
+  uint16_t counterM = 0;
 
   /* USER CODE END 2 */
 
@@ -411,9 +410,6 @@ int main(void)
 
   while (1)
   {
-	  //getNewStatus(&uebstatus);
-	  //setParameters(&uebstatus);
-
 	  // Main Queue - Priority 1
 	  if(isEventQueued(Q_Main)){
 		  Event evt;
@@ -437,7 +433,14 @@ int main(void)
 		  getEvent(&Q_USB, &evt);
 		  switch(evt.source){
 		  case 0:	//Transmit data from DT_Transmission over USB
-			  setBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
+			  if(counterM < 512) {
+			  TransmitBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
+			  counterM++;
+			  Event *evt = malloc (sizeof(Event));
+			  (*evt).class = 0;
+			  (*evt).source = 1;
+			  addEvent(&Q_DataTransmission, evt);
+			  }
 			  break;
 		  case 1:
 			  getMessage();// TODO receive message entweder in decoder oder hier????

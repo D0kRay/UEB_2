@@ -46,52 +46,82 @@ void get_Receive_Message(uint8_t *Buffer, uint32_t size)
 	}
 }
 
-uint8_t isBufferEmpty(uint8_t buffernumber)
+uint8_t whichBufferEmpty()
 {
-	uint8_t status = 0;
-	if(buffernumber == 1) {
-		status = buffer0status;
-	} else if (buffernumber == 2) {
-		status = buffer1status;
+	uint8_t buffernr = 5;
+	if(buffer_in_use == 0 && buffer0status == BUFFER_NOT_READY) {
+		if(is_Transmit_Complete()) {
+			buffer_in_use = 0;
+			buffer0status = BUFFER_READY;
+			buffernr = 0;
+			return buffernr;
+		}
+	} else if(buffer_in_use == 1 && buffer1status == BUFFER_NOT_READY) {
+		if(is_Transmit_Complete()) {
+			buffer_in_use = 1;
+			buffer0status = BUFFER_READY;
+			buffernr = 1;
+			return buffernr;
+		}
+	} else if(buffer_in_use == 1 && buffer0status == BUFFER_READY) {
+		buffernr = 0;
+		return buffernr;
+	} else if(buffer_in_use == 0 && buffer1status == BUFFER_READY) {
+		buffernr = 1;
+		return buffernr;
 	}
-	return status;
+	return buffernr;
 }
 
 void Transmit_Data()
 {
-	if(is_Transmit_Complete()) {
-		if(buffer_in_use == 0 && buffer0status == BUFFER_READY){
-			if(CDC_Transmit_FS(buffer0, BUFFERSIZE) == USBD_OK){
-				buffer_in_use = 1;
-				memset(buffer0, '\0', BUFFERSIZE);
-				buffer0status = 0;
-			} else {	//Capture USB Busy Errors and resent the given buffer the second time
-				CDC_Transmit_FS(buffer0, BUFFERSIZE);
+	if(buffer_in_use == 0){
+		buffer0status = BUFFER_NOT_READY;
+		if(CDC_Transmit_FS(buffer0, BUFFERSIZE) == USBD_OK){
+			if(is_Transmit_Complete()) {
+				buffer0status = BUFFER_READY;
 			}
-		} else if (buffer1status == 1){
-			if(CDC_Transmit_FS(buffer1, BUFFERSIZE) == USBD_OK){
-				buffer_in_use = 0;
-				memset(buffer1, '\0', BUFFERSIZE);
-				buffer1status = 0;
-			} else {	//Capture USB Busy Errors and resent the given buffer the second time
-				CDC_Transmit_FS(buffer1, BUFFERSIZE);
+		} else {	//Capture USB Busy Errors and resent the given buffer the second time
+			CDC_Transmit_FS(buffer0, BUFFERSIZE);
+		}
+	} else if (buffer1status == 1){
+		buffer1status = BUFFER_NOT_READY;
+		if(CDC_Transmit_FS(buffer1, BUFFERSIZE) == USBD_OK){
+			if(is_Transmit_Complete()) {
+				buffer1status = BUFFER_READY;
 			}
+		} else {	//Capture USB Busy Errors and resent the given buffer the second time
+			CDC_Transmit_FS(buffer1, BUFFERSIZE);
 		}
 	}
 }
 
-void setBuffer(uint8_t *data, uint32_t size)
+uint8_t TransmitBuffer(uint8_t *data, uint32_t size)
 {
-	if(buffer_in_use == 0) {
-		memset(buffer1, 0x00, sizeof(buffer1));
-		memcpy(buffer1, data, size);
-		buffer1status = 1;
-	} else {
-		memset(buffer0, 0x00, sizeof(buffer0));
-		memcpy(buffer0, data, size);
-		buffer0status = 1;
+	uint8_t transmit_pending = 0;
+
+	switch (whichBufferEmpty()) {
+
+		case 0:
+			memset(buffer0, 0x00, sizeof(buffer0));
+			memcpy(buffer0, data, size);
+			buffer_in_use = 0;
+			Transmit_Data();
+			break;
+
+		case 1:
+			memset(buffer1, 0x00, sizeof(buffer1));
+			memcpy(buffer1, data, size);
+			buffer_in_use = 1;
+			Transmit_Data();
+			break;
+
+		default:
+			transmit_pending = 1;
+			break;
 	}
-	Transmit_Data();
+
+	return transmit_pending;
 }
 
 
