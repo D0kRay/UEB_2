@@ -38,17 +38,6 @@ DT_status DT_Init(void* address, uint32_t size){
 
 	list_rpush(DT_list, newNode);
 
-//	for(int i = 0; i < (sizeof(DT_list)/sizeof(Dataset)); i++){
-//
-//		if(DT_list[i].Address == NULL){
-//			DT_list[i].ID = i;
-//			DT_list[i].Counter = 0;
-//			DT_list[i].Address = address;
-//			DT_list[i].Size = size;
-//			status = 1;
-//		}
-//		if(status == 1) break;
-//	}
 	return status;
 }
 
@@ -56,7 +45,9 @@ DT_status DT_Start(void *Buffer){
 
 	DT_status status = 0;
 
-	//fillBuffer(Buffer);
+	if(DT_list == NULL)
+		return (DT_status)1000;
+	Buffer = (void*)DT_fillBuffer(DT_list);
 
 	return status;
 }

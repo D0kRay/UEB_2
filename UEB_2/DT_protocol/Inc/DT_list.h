@@ -8,7 +8,6 @@
 #ifndef INC_DT_LIST_H_
 #define INC_DT_LIST_H_
 
-#include "stdlib.h"
 #include "DT_includes.h"
 
 typedef struct list_node {

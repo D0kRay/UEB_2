@@ -14,6 +14,8 @@
 
 //Standard INCLUDES
 #include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
 
 // EVENT QUEUE
 #include "EventQueue.h"
@@ -21,8 +23,6 @@
  // DT INCLUDES
 #include "DT_definitions.h"
 #include "DT_memory.h"
-#include "DT_list.h"
-#include "DT_algorithm.h"
 
 #ifdef __cplusplus
  }

@@ -18,4 +18,9 @@ typedef struct{
 	uint32_t Size;				// Size of the parameter in Byte
 }Dataset;
 
+typedef struct package{
+	uint8_t P_Status[4];
+	uint8_t P_Data[60];
+}DataPackage;
+
 #endif /* INC_DT_DEFINITIONS_H_ */
