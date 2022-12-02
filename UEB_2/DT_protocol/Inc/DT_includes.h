@@ -12,10 +12,17 @@
  extern "C" {
 #endif
 
-#include "DT_memory.h"
-#include "EventQueue.h"
-#include "DT_list.h"
+//Standard INCLUDES
 #include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+
+// EVENT QUEUE
+#include "EventQueue.h"
+
+ // DT INCLUDES
+#include "DT_definitions.h"
+#include "DT_memory.h"
 
 #ifdef __cplusplus
  }

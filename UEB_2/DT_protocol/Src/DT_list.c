@@ -22,6 +22,17 @@ list_new(void) {
   return self;
 }
 
+list_node_t *
+list_node_new(void *val) {
+  list_node_t *self;
+  if (!(self = malloc(sizeof(list_node_t))))
+    return NULL;
+  self->prev = NULL;
+  self->next = NULL;
+  self->val = val;
+  return self;
+}
+
 /*
  * Free the list.
  * @self: Pointer to the list

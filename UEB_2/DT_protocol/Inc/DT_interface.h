@@ -13,6 +13,7 @@
 #endif
 
 #include "DT_includes.h"
+#include "DT_algorithm.h"
 
 // DEFINES
 
@@ -37,19 +38,14 @@ typedef uint8_t DT_status;
  * 		Size		: uint32_t	= Defines the size of the data set in BYTES
  *
  */
-typedef struct{
-	uint8_t ID;					// 256 IDS for the parameter
-	uint8_t Counter;			// Counter for the data package sent
-	uint8_t MaxPackages;		// Number of packages to be sent
-	void* Address;				// 32 Bit Address
-	uint32_t Size;				// Size of the parameter in Byte
-}Dataset;
+
 
 // Function definition
 
 DT_status DT_Init(void* address, uint32_t size);
-DT_status DT_Start();
+DT_status DT_Start(void *Buffer);
 void* DT_Init_Memory(uint32_t size);
+uint8_t DT_isError(DT_status status);
 
 
 #ifdef __cplusplus
