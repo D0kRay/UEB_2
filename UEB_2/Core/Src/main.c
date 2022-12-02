@@ -316,6 +316,7 @@ int main(void)
   EventQueue* Q_Main 				= EventQueue_Init();
 
   uint8_t DT_TransmissionBuffer[1024];
+  char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.⁄nThis Text will be transmitted via multiple Data packages!";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -452,20 +453,25 @@ int main(void)
 			  break;
 
 		  case 1:
-
-			 status = DT_Start();
-
-			 switch(status){
-			 case 1:
-				 evt.class = 0;
-				 evt.source  =0;
-				 addEvent(&Q_USB, &evt);
+			 status = DT_Init(DT_TestString, sizeof(DT_TestString));
+			 if(DT_isError(status))
 				 break;
-			 default:
-				 DT_main();
+
+			 evt.class = 0;
+			 evt.source = 2;
+			 addEvent(&Q_DataTransmission, &evt);
+			 break;
+
+		  case 2:
+			 status = DT_Start(DT_TransmissionBuffer);
+			 if(DT_isError(status))
 				 break;
-			 }
-			  break;
+
+			 evt.class = 0;
+			 evt.source = 0;
+			 addEvent(&Q_USB, &evt);
+			 break;
+
 		  default:
 			  break;
 		  }
@@ -475,7 +481,7 @@ int main(void)
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
 		  Event *evt = malloc (sizeof(Event));
 		  (*evt).class = 0;
-		  (*evt).source = 0;
+		  (*evt).source = 1;
 
 		  addEvent(&Q_DataTransmission, evt);
 	  }

@@ -7,37 +7,65 @@
 
 #include "DT_interface.h"
 
-Dataset DT_list[5];
+list_t *DT_list;
 
 DT_status DT_Init(void* address, uint32_t size){
 
 	DT_status status = 0;
 
-	if(address == NULL) return (DT_status)1000;		// Illegal address for DATA SET
+	if(DT_list == NULL)
+		DT_list = malloc(sizeof(list_t));	//No initialization
+	if(DT_list == NULL)
+		return (DT_status)1100;		// NULL pointer after allocation
 
-	for(int i = 0; i < (sizeof(DT_list)/sizeof(Dataset)); i++){
+	if(address == NULL)
+		return (DT_status)1000;		// Illegal address for DATA SET
 
-		if(DT_list[i].Address == NULL){
-			DT_list[i].ID = i;
-			DT_list[i].Counter = 0;
-			DT_list[i].Address = address;
-			DT_list[i].Size = size;
-			status = 1;
-		}
-		if(status == 1) break;
-	}
+	Dataset *newDataset = malloc(sizeof(list_node_t));
+	if(newDataset == NULL)
+		return (DT_status)1200;		// NULL pointer after allocation
+
+	newDataset->ID = (uint8_t)DT_list->len;
+	newDataset->Counter = 0;
+	newDataset->Address = address;
+	newDataset->Size = size;
+	if(size%64)
+		newDataset->MaxPackages = (size/64) + 1;
+	else
+		newDataset->MaxPackages = (size/64);
+
+	list_node_t *newNode = list_node_new(newDataset);
+
+	list_rpush(DT_list, newNode);
+
+//	for(int i = 0; i < (sizeof(DT_list)/sizeof(Dataset)); i++){
+//
+//		if(DT_list[i].Address == NULL){
+//			DT_list[i].ID = i;
+//			DT_list[i].Counter = 0;
+//			DT_list[i].Address = address;
+//			DT_list[i].Size = size;
+//			status = 1;
+//		}
+//		if(status == 1) break;
+//	}
 	return status;
 }
 
-DT_status DT_Start(){
+DT_status DT_Start(void *Buffer){
 
-	DT_status status = 1;
+	DT_status status = 0;
 
-	// char* str = (char*)DT_list[0].Address;		//ONLY FOR DEBUGGING
-
-	printf("\nText: %s", (char*)DT_list[0].Address);
+	//fillBuffer(Buffer);
 
 	return status;
+}
+
+uint8_t DT_isError(DT_status status){
+	if(status)
+		return 0;
+	else
+		return 1;
 }
 
 void* DT_Init_Memory(uint32_t size){

@@ -9,12 +9,12 @@
 #define INC_DT_LIST_H_
 
 #include "stdlib.h"
-
+#include "DT_includes.h"
 
 typedef struct list_node {
   struct list_node *prev;
   struct list_node *next;
-  void *val;
+  Dataset *val;
 } list_node_t;
 
 /*
