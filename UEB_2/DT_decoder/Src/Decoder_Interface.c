@@ -324,7 +324,7 @@ void createStatusEvent()
 {
 	Event *evt = malloc (sizeof(Event));
 	(*evt).class = 0;
-	(*evt).source = 0;
+	(*evt).message = 0;
 	addEvent(&pMainEventQueue, evt);
 }
 
@@ -332,7 +332,7 @@ void createInfoEvent()
 {
 	Event *evt = malloc (sizeof(Event));
 	(*evt).class = 0;
-	(*evt).source = 1;
+	(*evt).message = 1;
 	addEvent(&pDataTransmissionEventQueue, evt);
 }
 

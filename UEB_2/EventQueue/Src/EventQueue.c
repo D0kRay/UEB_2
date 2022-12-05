@@ -71,7 +71,30 @@ uint8_t isEventQueued(EventQueue *queue){
 
 void EventInit(Event *evt){
 	evt->class = 0;
-	evt->source = 0;
+	evt->message = 0;
 	evt->ptr_data = NULL;
 	evt->size_data = 0;
+}
+
+uint8_t getEventClass(Event evt){
+
+	if(evt.class == Interrupt){
+		return Interrupt;
+	}
+	if(evt.class == Routine){
+		return Routine;
+	}
+	return NoEvent;
+}
+
+uint8_t getEventMessage(Event evt){
+
+	return evt.message;
+}
+
+void setEventClass(Event *evt, uint8_t Class){
+	evt->class = Class;
+}
+void setEventMessage(Event *evt, uint8_t Message){
+	evt->message = Message;
 }

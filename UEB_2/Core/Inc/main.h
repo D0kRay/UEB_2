@@ -44,7 +44,14 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+typedef enum{
+	DataTransmissionComplete = 0
+}DT_Messages;
 
+typedef enum{
+	DTBufferReady = 0,
+	StatusInfoReceived = 1
+}USB_Messages;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

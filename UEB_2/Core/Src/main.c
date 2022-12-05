@@ -410,87 +410,124 @@ int main(void)
 
   while (1)
   {
-	  // Main Queue - Priority 1
+	  // Main Queue
 	  if(isEventQueued(Q_Main)){
 		  Event evt;
 		  getEvent(&Q_Main, &evt);
-		  switch(evt.source){
-		  case 0:
+		  switch(getEventClass(evt)){
+		  case 1:
 			  setParameters(&uebstatus);
 			  break;
 
-		  case 1:
-
-			  break;
-
-		  default:
-			  break;
-		  }
-	  }
-	  // USB - Queue Priority 2
-	  if(isEventQueued(Q_USB)){
-		  Event evt;
-		  getEvent(&Q_USB, &evt);
-		  switch(evt.source){
-		  case 0:	//Transmit data from DT_Transmission over USB
-			  if(counterM < 512) {
-			  TransmitBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
-			  counterM++;
-			  Event *evt = malloc (sizeof(Event));
-			  (*evt).class = 0;
-			  (*evt).source = 1;
-			  addEvent(&Q_DataTransmission, evt);
-			  }
-			  break;
-		  case 1:
-			  getMessage();// TODO receive message entweder in decoder oder hier????
-			  break;
 		  case 2:
 
 			  break;
-		  case 3:
 
+		  default:
 			  break;
-		  case 4:
+		  }
+	  }
+	  // USB Queue
+	  if(isEventQueued(Q_USB)){
+		  Event evt;
+		  getEvent(&Q_USB, &evt);
+		  switch(getEventClass(evt)){
+		  case Interrupt:	//Transmit data from DT_Transmission over USB
+
+			  switch(getEventMessage(evt)){	//Interrupt Events
+			  case 0:
+				  if(counterM < 512) {
+				  TransmitBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
+				  counterM++;
+				  Event *evt = malloc (sizeof(Event));
+
+				  (*evt).class = 0;
+				  (*evt).message = 1;
+				  addEvent(&Q_DataTransmission, evt);
+				  }
+				  break;
+			  default:
+				  break;
+			  }
+			  break;
+
+		  case Routine:
+			  switch(getEventMessage(evt)){	//Routine Events
+			  case DTBufferReady:	//Send buffer if ready
+				  TransmitBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
+				  setEventClass(&evt,Routine);
+				  setEventMessage(&evt,DataTransmissionComplete);
+				  addEvent(&Q_DataTransmission,&evt);
+				  break;
+			  case StatusInfoReceived:
+				  getMessage();		// TODO receive message entweder in decoder oder hier????
+				  break;
+
+			  default:
+				  break;
+			  }
 
 			  break;
 		  default:
 			  break;
 		  }
 	  }
-	  // Data Transmission - Queue Priority 3
+
+	  // Data Transmission Queue
 	  if(isEventQueued(Q_DataTransmission)){
 		  Event evt;
 		  getEvent(&Q_DataTransmission, &evt);
 		  DT_status status;
-		  switch(evt.source){
-		  case 0:
-			  strcpy((char*)DT_TransmissionBuffer,"Hello World!");
+		  uint8_t ID;
+		  switch(getEventClass(evt)){
+		  case Interrupt:
 
-			  evt.class = 0;
-			  evt.source = 0;
-			  addEvent(&Q_USB,&evt);
+			  switch(getEventMessage(evt)){	//Interrupt Events
+			  case 0:
+				  strcpy((char*)DT_TransmissionBuffer,"Hello World!");
+				  setEventClass(&evt,Routine);
+				  setEventMessage(&evt,DTBufferReady);
+				  addEvent(&Q_USB,&evt);
+				  break;
+
+			  case 1:
+				 status = DT_Init(&ID, DT_TestString, sizeof(DT_TestString));
+				 if(DT_isError(status))
+					 break;
+				 break;
+
+				  break;
+
+			  case 2:
+				 status = DT_Start(ID);
+				 if(DT_isError(status))
+					 break;
+				 break;
+
+			  default:
+				  break;
+			  }
 			  break;
 
-		  case 1:
-			 status = DT_Init(DT_TestString, sizeof(DT_TestString));
-			 if(DT_isError(status))
-				 break;
+		  case Routine:
 
-			 evt.class = 0;
-			 evt.source = 2;
-			 addEvent(&Q_DataTransmission, &evt);
-			 break;
+			  switch(getEventMessage(evt)){	//Routine Events
+			  case DataTransmissionComplete:
+				  if(DT_activeData()){
+					  DT_TransmitData(DT_TransmissionBuffer);
+					  setEventClass(&evt,Routine);
+					  setEventMessage(&evt,DTBufferReady);
+					  addEvent(&Q_USB,&evt);
+				  }else{
+					  setEventClass(&evt,Routine);
+					  setEventMessage(&evt,DataTransmissionComplete);
+					  addEvent(&Q_DataTransmission,&evt);
+				  }
+				  break;
+			  default:
+				  break;
+			  }
 
-		  case 2:
-			 status = DT_Start(DT_TransmissionBuffer);
-			 if(DT_isError(status))
-				 break;
-
-			 evt.class = 0;
-			 evt.source = 0;
-			 addEvent(&Q_USB, &evt);
-			 break;
 
 		  default:
 			  break;
@@ -500,16 +537,14 @@ int main(void)
 	  // if button pressed run dataset
 	  if(is_Receive_Complete()){
 		  Event *evt = malloc (sizeof(Event));
-		  (*evt).class = 0;
-		  (*evt).source = 1;
-
+		  setEventClass((Event*)&evt,Routine);
+		  setEventMessage((Event*)&evt,StatusInfoReceived);
 		  addEvent(&Q_USB, evt);
 	  	  }
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
 		  Event *evt = malloc (sizeof(Event));
-		  (*evt).class = 0;
-		  (*evt).source = 1;
-
+		  setEventClass((Event*)&evt,Interrupt);
+		  setEventMessage((Event*)&evt,1);
 		  addEvent(&Q_DataTransmission, evt);
 	  }
   }

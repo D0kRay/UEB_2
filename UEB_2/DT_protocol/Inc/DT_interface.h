@@ -42,10 +42,12 @@ typedef uint8_t DT_status;
 
 // Function definition
 
-DT_status DT_Init(void* address, uint32_t size);
-DT_status DT_Start(void *Buffer);
+DT_status DT_Init(uint8_t *ID, void* address, uint32_t size);
+DT_status DT_Start(uint8_t ID);
+DT_status DT_TransmitData(void *Buffer);
 void* DT_Init_Memory(uint32_t size);
 uint8_t DT_isError(DT_status status);
+uint8_t DT_activeData();
 
 
 #ifdef __cplusplus

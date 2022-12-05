@@ -16,9 +16,15 @@
 #include "stdio.h"
 #include "stdlib.h"
 
+ typedef enum{
+	 NoEvent = 0,
+	 Interrupt = 1,
+	 Routine = 2
+ }EVTClass;
+
 typedef struct event{
-	char class;
-	char source;
+	uint8_t class;
+	uint8_t message;
 
 	void* ptr_data;
 	uint32_t size_data;
@@ -41,6 +47,10 @@ void addEvent(EventQueue **queue, Event *evt);
 void getEvent(EventQueue **queue, Event *evt);
 uint8_t isEventQueued(EventQueue *queue);
 void EventInit(Event *evt);
+uint8_t getEventClass(Event evt);
+uint8_t getEventMessage(Event evt);
+void setEventClass(Event *evt, uint8_t Class);
+void setEventMessage(Event *evt, uint8_t Message);
 
 
 #ifdef __cplusplus

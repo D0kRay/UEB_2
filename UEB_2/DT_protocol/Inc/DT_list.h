@@ -43,7 +43,7 @@ list_node_t *
 list_lpush(list_t *self, list_node_t *node);
 
 list_node_t *
-list_find(list_t *self, void *val);
+list_find(list_t *self, uint8_t ID);
 
 list_node_t *
 list_at(list_t *self, int index);

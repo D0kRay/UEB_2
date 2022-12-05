@@ -151,12 +151,12 @@ list_lpush(list_t *self, list_node_t *node) {
  */
 
 list_node_t *
-list_find(list_t *self, void *val) {
+list_find(list_t *self, uint8_t ID) {
 
   list_node_t *node = self->head;
 
   while (node->next == NULL) {
-	 if(node->val == val)
+	 if(node->val->ID == ID)
 		 return node;
   }
   return NULL;
