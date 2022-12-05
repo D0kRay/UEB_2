@@ -101,6 +101,7 @@ volatile uint16_t rxBufferTailPos = 0; // Receive buffer read position
 volatile uint16_t rxBufferHeadPos = 0; // Receive buffer write position
 volatile uint8_t rxBufferFull = 0;	// If the Receive Buffer is full, this Byte switches to 1
 uint8_t UserRxBuffer1_FS[CDC_RX_BUFFER_SIZE];
+uint8_t UserTxBuffer1_FS[CDC_RX_BUFFER_SIZE];
 uint8_t UserRxBuffer2_FS[64];
 uint8_t transmit_complete = 1;
 /* USER CODE END PRIVATE_VARIABLES */
@@ -161,7 +162,7 @@ static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
   /* Set Application Buffers */
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBuffer1_FS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBuffer2_FS);
   return (USBD_OK);
   /* USER CODE END 3 */
@@ -367,11 +368,13 @@ uint8_t CDC_Transmit_Complete_FS()
 	return transmit_complete;
 }
 
-void* CDC_Receive_Data() {
+void CDC_Receive_Data(uint8_t *buffer, uint32_t buffersize)
+{
 	rxBufferHeadPos = 0;
 	rxBufferFull = 0;
+	memcpy(buffer, UserRxBuffer1_FS, buffersize);
+	memset(UserRxBuffer1_FS, '\0', CDC_RX_BUFFER_SIZE);
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-	return &UserRxBuffer1_FS;
 }
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

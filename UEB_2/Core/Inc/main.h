@@ -35,7 +35,6 @@ extern "C" {
 #include "stdbool.h"
 #include "DT_interface.h"
 #include "EventQueue.h"
-#include "DT_decoder.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -115,7 +115,7 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
 uint8_t CDC_Receive_Complete_FS();
 uint8_t CDC_Transmit_Complete_FS();
-void* CDC_Receive_Data();
+void CDC_Receive_Data(uint8_t *buffer, uint32_t buffersize);
 /* USER CODE END EXPORTED_FUNCTIONS */
 
 /**

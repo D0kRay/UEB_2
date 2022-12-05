@@ -26,12 +26,12 @@
 //} COMPROV_BufferInfoType;
 
 
-uint8_t Is_Receive_Complete();
-uint8_t IsBufferEmpty(uint8_t buffernumber);
+uint8_t is_Receive_Complete();
+uint8_t isBufferEmpty(uint8_t buffernumber);
 
 void get_Receive_Message(uint8_t *Buffer, uint32_t size);
 void setBuffer(uint8_t *data, uint32_t size);
-void Transmit_Data();
+//void Transmit_Data();
 
 
 #endif /* COMMUNICATION_COM_PROVIDER_H_ */

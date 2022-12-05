@@ -14,7 +14,7 @@ DT_status DT_Init(void* address, uint32_t size){
 	DT_status status = 0;
 
 	if(DT_list == NULL)
-		DT_list = malloc(sizeof(list_t));	//No initialization
+		DT_list = list_new();	//No initialization
 	if(DT_list == NULL)
 		return (DT_status)1100;		// NULL pointer after allocation
 
@@ -30,9 +30,9 @@ DT_status DT_Init(void* address, uint32_t size){
 	newDataset->Address = address;
 	newDataset->Size = size;
 	if(size%64)
-		newDataset->MaxPackages = (size/64) + 1;
+		newDataset->MaxPackages = (size/DT_PACKAGE_DATA_SIZE);
 	else
-		newDataset->MaxPackages = (size/64);
+		newDataset->MaxPackages = (size/DT_PACKAGE_DATA_SIZE) - 1;
 
 	list_node_t *newNode = list_node_new(newDataset);
 
@@ -47,16 +47,17 @@ DT_status DT_Start(void *Buffer){
 
 	if(DT_list == NULL)
 		return (DT_status)1000;
-	Buffer = (void*)DT_fillBuffer(DT_list);
+	memcpy(Buffer, DT_fillBuffer(DT_list), DT_BUFFER_SIZE);
+//	Buffer = DT_fillBuffer(DT_list);
 
 	return status;
 }
 
 uint8_t DT_isError(DT_status status){
 	if(status)
-		return 0;
-	else
 		return 1;
+	else
+		return 0;
 }
 
 void* DT_Init_Memory(uint32_t size){

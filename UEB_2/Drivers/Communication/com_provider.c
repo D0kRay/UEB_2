@@ -39,15 +39,14 @@ void get_Receive_Message(uint8_t *Buffer, uint32_t size)
 {
 	if(is_Receive_Complete() != 0) {
 		if(size > CDC_RX_BUFFER_SIZE){
-			memcpy(Buffer, CDC_Receive_Data(), CDC_RX_BUFFER_SIZE);
+			CDC_Receive_Data(Buffer, CDC_RX_BUFFER_SIZE);
 		} else {
-			memcpy(Buffer, CDC_Receive_Data(), size);
+			CDC_Receive_Data(Buffer, CDC_RX_BUFFER_SIZE);
 		}
-		memset(CDC_Receive_Data(), 0x00, CDC_RX_BUFFER_SIZE);
 	}
 }
 
-uint8_t IsBufferEmpty(uint8_t buffernumber)
+uint8_t isBufferEmpty(uint8_t buffernumber)
 {
 	uint8_t status = 0;
 	if(buffernumber == 1) {
@@ -56,20 +55,6 @@ uint8_t IsBufferEmpty(uint8_t buffernumber)
 		status = buffer1status;
 	}
 	return status;
-}
-
-void setBuffer(uint8_t *data, uint32_t size)
-{
-	if(buffer_in_use == 0) {
-		memset(buffer1, 0x00, sizeof(buffer1));
-		memcpy(buffer1, data, size);
-		buffer1status = 1;
-	} else {
-		memset(buffer0, 0x00, sizeof(buffer0));
-		memcpy(buffer0, data, size);
-		buffer0status = 1;
-	}
-	Transmit_Data();
 }
 
 void Transmit_Data()
@@ -94,5 +79,21 @@ void Transmit_Data()
 		}
 	}
 }
+
+void setBuffer(uint8_t *data, uint32_t size)
+{
+	if(buffer_in_use == 0) {
+		memset(buffer1, 0x00, sizeof(buffer1));
+		memcpy(buffer1, data, size);
+		buffer1status = 1;
+	} else {
+		memset(buffer0, 0x00, sizeof(buffer0));
+		memcpy(buffer0, data, size);
+		buffer0status = 1;
+	}
+	Transmit_Data();
+}
+
+
 
 

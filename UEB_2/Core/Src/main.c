@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #include "stm32h743xx.h"
+#include "Decoder_Interface.h"
 #include "com_provider.h"
 
 /* USER CODE END Includes */
@@ -61,6 +62,7 @@ ADC_HandleTypeDef hadc1;
 IWDG_HandleTypeDef hiwdg1;
 
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
@@ -139,6 +141,7 @@ static void MX_ADC1_Init(void);
 static void MX_IWDG1_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_DMA_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -316,7 +319,10 @@ int main(void)
   EventQueue* Q_Main 				= EventQueue_Init();
 
   uint8_t DT_TransmissionBuffer[1024];
-  char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.⁄nThis Text will be transmitted via multiple Data packages!";
+  //char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.⁄nThis Text will be transmitted via multiple Data packages!";
+
+  char DT_TestString[] = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit ame";
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -344,6 +350,7 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM3_Init();
   MX_USB_DEVICE_Init();
+  MX_DMA_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);	//LED 3 turned on to see system resets in case of IWDG1(Watchdog)
@@ -391,8 +398,11 @@ int main(void)
 		  .maxcurrent = 1.0,
 		  .averagenum = 24
   };
-  //UEB_MeasuresType uebmeasure;
 
+
+  //UEB_MeasuresType uebmeasure;
+  provideStatus(&uebstatus);
+  provideEventQueues(Q_Main, Q_USB, Q_DataTransmission);
 
   /* USER CODE END 2 */
 
@@ -410,7 +420,7 @@ int main(void)
 		  getEvent(&Q_Main, &evt);
 		  switch(evt.source){
 		  case 0:
-
+			  setParameters(&uebstatus);
 			  break;
 
 		  case 1:
@@ -426,14 +436,21 @@ int main(void)
 		  Event evt;
 		  getEvent(&Q_USB, &evt);
 		  switch(evt.source){
-		  case 0:
+		  case 0:	//Transmit data from DT_Transmission over USB
 			  setBuffer(DT_TransmissionBuffer,sizeof(DT_TransmissionBuffer));
 			  break;
-
 		  case 1:
+			  getMessage();// TODO receive message entweder in decoder oder hier????
+			  break;
+		  case 2:
 
 			  break;
+		  case 3:
 
+			  break;
+		  case 4:
+
+			  break;
 		  default:
 			  break;
 		  }
@@ -478,6 +495,13 @@ int main(void)
 	  }
 
 	  // if button pressed run dataset
+	  if(is_Receive_Complete()){
+		  Event *evt = malloc (sizeof(Event));
+		  (*evt).class = 0;
+		  (*evt).source = 1;
+
+		  addEvent(&Q_USB, evt);
+	  	  }
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
 		  Event *evt = malloc (sizeof(Event));
 		  (*evt).class = 0;
@@ -689,11 +713,11 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -986,6 +1010,22 @@ static void MX_TIM5_Init(void)
   /* USER CODE BEGIN TIM5_Init 2 */
 
   /* USER CODE END TIM5_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }
 
