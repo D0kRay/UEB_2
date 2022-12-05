@@ -123,30 +123,6 @@ static const char UEBREADY[] = "?";								//returns the actual state of the UEB
  *
  *
  */
-//often used commands in different trees
-
-
-//
-//static const char GETMEASURES[] = "UEB_start_measure";			//starts the measure and pushes all data to the serial port
-//static const char STOPMEASURES[] = "UEB_stop_measure";			//stops pushing data to the serial port
-//
-////Command to get Parameters of the UEB
-//static const char GETPARAMETERS[] = "UEB_get_params";
-//static const char GETSTATUS[] = "UEB_status:";
-//
-////Commands to set Parameters on the UEB
-//static const char SETPARAMETERS[] = "UEB_set_params";			//
-////static const char SAVEPARAMETERS[] = "UEB_save_params";
-//static const char SETVCCVOLTAGE[] = "UEB_Vcc:";				//The value must be in
-//static const char SETOUTVOLTAGE[] = "UEB_Vout:";
-//
-//static const char SETFREQUENCY[] = "UEB_freq:";
-//static const char SETROTATION[] = "UEB_rot:";
-//static const char SETTHIRDHARMONIC[] = "UEB_thirdharm:";
-//static const char SETSOFTSTART[] = "UEB_softstart:";
-//static const char SETSOFTSTARTDURATION[] = "UEB_softdur:";
-//static const char SETMAXCURRENT[] = "UEB_maxCurr:";
-//static const char SETNUMAVERAGED[] = "UEB_averagednum:";
 //
 static const char DELIMITER_FULLMESSAGE[] = ";";
 static const char DELIMITER_PARTMESSAGE[] = ":";

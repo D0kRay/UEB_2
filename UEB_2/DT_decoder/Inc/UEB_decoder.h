@@ -18,7 +18,7 @@ static const char VCC[] = "VCC";
 static const char VOUT[] = "VOUT";
 static const char CONFIGURATION[] = "CONFIG";
 static const char PARAMETER[] = "PARAM";
-static const char D_ENABLE[] = "ENAB:";
+static const char D_ENABLE[] = "ENAB";
 static const char FREQUENCY[] = "FREQ";
 static const char CURRENT[] = "CURR";
 
