@@ -537,8 +537,9 @@ int main(void)
 	  // if button pressed run dataset
 	  if(is_Receive_Complete()){
 		  Event *evt = malloc (sizeof(Event));
-		  setEventClass((Event*)&evt,Routine);
-		  setEventMessage((Event*)&evt,StatusInfoReceived);
+		  //TODO (Event*)&evt durch evt ersetzt, da evt schon ein Pointer ist -> sonst HardFaultHandler
+		  setEventClass(evt,Routine);
+		  setEventMessage(evt,StatusInfoReceived);
 		  addEvent(&Q_USB, evt);
 	  	  }
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
