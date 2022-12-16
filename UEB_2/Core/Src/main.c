@@ -537,8 +537,9 @@ int main(void)
 	  // if button pressed run dataset
 	  if(is_Receive_Complete()){
 		  Event *evt = malloc (sizeof(Event));
-		  setEventClass((Event*)&evt,Routine);
-		  setEventMessage((Event*)&evt,StatusInfoReceived);
+		  //TODO (Event*)&evt durch evt ersetzt, da evt schon ein Pointer ist -> sonst HardFaultHandler
+		  setEventClass(evt,Routine);
+		  setEventMessage(evt,StatusInfoReceived);
 		  addEvent(&Q_USB, evt);
 	  	  }
 	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
@@ -547,11 +548,59 @@ int main(void)
 		  setEventMessage((Event*)&evt,1);
 		  addEvent(&Q_DataTransmission, evt);
 	  }
+
+	  //ADC Abtastfunktionen
+	  /*
+	   * 1. ADC Frequenz ändern
+	   * 2. ADC Kanäle ändern
+	   * 3.	ADC Buffergröße ändern und allokieren
+	   * 4.	ADC Auflösung einstellen
+	   * 5.	ADC Abtastrate für einzelne Kanäle wählen
+	   */
   }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+//  void ADC_ChangeFrequency(uint32_t frequency)
+//  {
+//
+//  }
+//
+//  void ADC_SetChannels(uint32_t channel, uint32_t sampling_rate)
+//  {
+//
+//  }
+//
+//  void ADC_AllocateBuffer(ADC_ConfigType adc_config)
+//  {
+//
+//  }
+//
+//  void ADC_SetResolution(uint32_t resolution)
+//  {
+//
+//  }
+//
+//  void ADC_SetSamplingRate(uint32_t channel, uint32_t sampling_rate)
+//  {
+//
+//  }
+//
+//  void ADC_GetBuffer(void* buffer)
+//  {
+//
+//  }
+//
+//  void ADC_WriteToBuffer()
+//  {
+//
+//  }
+//
+//  uint32_t generate_Timestamp()
+//  {
+//	  uint32_t timestamp = HAL_GetTick();	//Generate Timestamp in ms from Controller Startup
+//	  //TODO Timestamp als Echtzeit mittels RTC
+//  }
   /* USER CODE END 3 */
 }
 
