@@ -25,7 +25,11 @@ DT_status DT_Init(uint8_t *ID, void* address, uint32_t size){
 	if(newDataset == NULL)
 		return (DT_status)1200;		// NULL pointer after allocation
 
-	newDataset->ID = (uint8_t)DT_list->len; // How to provide IDs???
+	uint8_t tmpID = ST_pop();		// Too many Data sets
+	if(tmpID == 0)
+		return (DT_status)1100;
+
+	newDataset->ID = tmpID;
 	newDataset->Counter = 0;
 	newDataset->Address = address;
 	newDataset->Size = size;

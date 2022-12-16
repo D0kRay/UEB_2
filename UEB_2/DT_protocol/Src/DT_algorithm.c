@@ -29,6 +29,15 @@ uint8_t* DT_fillBuffer(list_t *DT_list){
 			StatusByte &= DT_NO_DATA;
 			memcpy(&Buffer[i + StatusFlags_OS], &StatusByte, sizeof(uint8_t));
 		}else{
+			while(dt_set->next != NULL){
+				if(dt_set->val->F_SendData == F_ON)
+					break;
+				dt_set = list_at(DT_list, ++count);
+
+				if(dt_set == NULL)
+					return NULL;
+			}
+
 			if(dt_set->next == NULL)
 				count = 0;
 			else
@@ -43,6 +52,7 @@ uint8_t* DT_fillBuffer(list_t *DT_list){
 			memcpy(Buffer + i + Data_OS, 		temp, 		DT_PACKAGE_DATA_SIZE);
 
 			if(dt_set->val->Counter == dt_set->val->MaxPackages){
+				ST_push(dt_set->val->ID);
 				list_remove(DT_list, dt_set);
 				StatusByte |= DT_TC;
 			}
