@@ -48,59 +48,66 @@ uint16_t getDecimalOfFloat(float f)
 void decodeUEBMessage(char* message)
 {
 	if(strstr(message, UEB) != NULL) {
-		message = strstr(message, UEB) + strlen(UEB);
+		message = strstr(message, DELIMITER_PARTMESSAGE)+1;
 		if(strstr(message, SOFTSTART) != NULL){
-			message = strstr(message, SOFTSTART) + strlen(SOFTSTART);
+			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, D_ENABLE) != NULL) {
-				message = strstr(message, D_ENABLE) + strlen(D_ENABLE);
-				message = strstr(message, DELIMITER_PARTMESSAGE) + strlen(DELIMITER_PARTMESSAGE);
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				pUEB_status->softstart = getFloatOfMessage(message);
 			} else if (strstr(message, DURATION) != NULL) {
-				message = message + strlen(DURATION) + 1;
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
+					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 					pUEB_status->softstartduration = getFloatOfMessage(message);
 				}
 
 			}
 		} else if(strstr(message, CONFIGURATION) != NULL){
-			message = message + strlen(CONFIGURATION);
+			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, TRDHARMONIC) != NULL) {
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				pUEB_status->thirdharmonic = getFloatOfMessage(message);
 			} else if (strstr(message, ROTATION) != NULL) {
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				pUEB_status->rotationdirection = getFloatOfMessage(message);
 			}
 
 		} else if(strstr(message, PARAMETER) != NULL){
-			message = message + strlen(PARAMETER);
+			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, VCC) != NULL) {
-				message = message + strlen(VCC);
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
+					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 					pUEB_status->vccvoltage = getFloatOfMessage(message);
 				}
 
 			} else if (strstr(message, VOUT) != NULL) {
-				message = message + strlen(VOUT);
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
+					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 					pUEB_status->outvoltage = getFloatOfMessage(message);
 				}
 
 			} else if (strstr(message, FREQUENCY) != NULL) {
-				message = message + strlen(FREQUENCY);
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
+					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 					pUEB_status->frequency = getFloatOfMessage(message);
 				}
 
 			}else if (strstr(message, CURRENT) != NULL) {
-				message = message + strlen(CURRENT);
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
+					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 					pUEB_status->maxcurrent = getFloatOfMessage(message);
 				}
 
 			}
 
 		} else if(strstr(message, SYSTEM) != NULL){
-			message = message + strlen(SYSTEM);
+			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, D_ENABLE) != NULL) {
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				pUEB_status->status = getFloatOfMessage(message);
 				createStatusEvent();
 			}
