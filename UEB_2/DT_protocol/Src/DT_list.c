@@ -191,21 +191,27 @@ void
 list_remove(list_t *self, list_node_t *node) {
   if(node == NULL)
 	  return;
+  if(node == self->head && node == self->tail){
+	  self->head = NULL;
+	  self->tail = NULL;
+	  free(node);
+	  --self->len;
+	  return;
+  }
   if(node == self->head){
 	  node->next->prev = NULL;
 	  self->head = node->next;
 	  free(node);
-	  return;
-  }
+  }else
   if(node == self->tail){
 	  node->prev->next = NULL;
 	  self->tail = node->prev;
 	  free(node);
-	  return;
-  }
+  }else{
   node->next->prev = node->prev;
   node->prev->next = node->next;
   free(node);
+  };
   --self->len;
   return;
 }

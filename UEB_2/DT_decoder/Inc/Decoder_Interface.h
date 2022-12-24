@@ -133,8 +133,8 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 
 //Functions
 void createStatusEvent();
-void createInfoEvent();
-void getMessage();
+void createEvent(EventQueue **queue);
+void getMessage(EventQueue **queue);
 void getNewStatus(UEB_StatusType *uebstatus);
 
 void provideStatus(UEB_StatusType *uebstatus);

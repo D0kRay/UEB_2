@@ -21,7 +21,7 @@ DT_status DT_Init(uint8_t *ID, void* address, uint32_t size){
 	if(address == NULL)
 		return (DT_status)1000;		// Illegal address for DATA SET
 
-	Dataset *newDataset = malloc(sizeof(list_node_t));
+	Dataset *newDataset = malloc(sizeof(Dataset));
 	if(newDataset == NULL)
 		return (DT_status)1200;		// NULL pointer after allocation
 
@@ -42,6 +42,8 @@ DT_status DT_Init(uint8_t *ID, void* address, uint32_t size){
 	list_node_t *newNode = list_node_new(newDataset);
 
 	list_rpush(DT_list, newNode);
+
+	*ID = tmpID;
 
 	return status;
 }
@@ -65,7 +67,8 @@ DT_status DT_TransmitData(void *Buffer){
 
 	if(DT_list == NULL)
 		return (DT_status)1000;
-	memcpy(Buffer, DT_fillBuffer(DT_list), DT_BUFFER_SIZE);
+
+	DT_fillBuffer(DT_list, Buffer);
 
 	return status;
 
@@ -79,7 +82,23 @@ uint8_t DT_isError(DT_status status){
 }
 
 uint8_t DT_activeData(){
-	return DT_list->len;
+	if(DT_list == NULL)
+			DT_list = list_new();	//No initialization
+	uint8_t count = 0;
+	list_node_t* dt_set;
+
+	if(DT_list->len == 0)
+		return 0;
+
+	do{
+		dt_set = list_at(DT_list, count++);
+
+		if(dt_set->val->F_SendData == F_ON)
+			return 1;
+
+	}while(dt_set->next != NULL);
+
+	return 0;
 }
 
 void* DT_Init_Memory(uint32_t size){

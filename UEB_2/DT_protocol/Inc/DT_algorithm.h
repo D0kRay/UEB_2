@@ -44,7 +44,7 @@
 
 #define DT_complete		0x80
 
-uint8_t* DT_fillBuffer(list_t *DT_list);
+void DT_fillBuffer(list_t *DT_list, uint8_t *buf);
 
 
 #endif /* INC_DT_ALGORITHM_H_ */

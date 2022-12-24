@@ -316,7 +316,7 @@ int main(void)
   ST_init();
 
   uint8_t DT_TransmissionBuffer[1024];
-  //char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.⁄nThis Text will be transmitted via multiple Data packages!";
+  //char DT_TestString[] = "This is the Test String for the Data Transmission via the Command fields of the Computer.�?�nThis Text will be transmitted via multiple Data packages!";
 
   char DT_TestString[] = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit ame";
 
@@ -399,12 +399,12 @@ int main(void)
 
   //UEB_MeasuresType uebmeasure;
   provideStatus(&uebstatus);
-  provideEventQueues(Q_Main, Q_USB, Q_DataTransmission);
   uint16_t counterM = 0;
 
-  setEventClass(&evt,Routine);
-  setEventMessage(&evt,DataTransmissionComplete);
-  addEvent(&Q_DataTransmission,&evt);
+  Event *evt1 = malloc (sizeof(Event));
+  setEventClass(evt1,Routine);
+  setEventMessage(evt1,DataTransmissionComplete);
+  addEvent(&Q_DataTransmission,evt1);
 
 
   /* USER CODE END 2 */
@@ -479,6 +479,24 @@ int main(void)
 				  addEvent(&Q_DataTransmission, evt);
 				  }
 				  break;
+
+			  case StatusInfoReceived:
+
+				  getMessage(&Q_USB);		// TODO receive message entweder in decoder oder hier????
+
+				  break;
+
+			  case StatusCommandReceived:
+
+//				  getMessage(&Q_USB);		// TODO receive message entweder in decoder oder hier????
+				  setEventClass(&evt,Interrupt);
+				  setEventMessage(&evt,1);
+				  addEvent(&Q_DataTransmission,&evt);
+				  setEventClass(&evt,Interrupt);
+				  setEventMessage(&evt,2);
+				  addEvent(&Q_DataTransmission,&evt);
+				  break;
+
 			  default:
 				  break;
 			  }
@@ -496,10 +514,6 @@ int main(void)
 				  addEvent(&Q_DataTransmission,&evt);
 				  break;
 
-			  case StatusInfoReceived:
-
-				  getMessage();		// TODO receive message entweder in decoder oder hier????
-				  break;
 
 			  default:
 				  break;
@@ -533,8 +547,6 @@ int main(void)
 				 if(DT_isError(status))
 					 break;
 				 break;
-
-				  break;
 
 			  case 2:
 				 status = DT_Start(ID);
@@ -576,7 +588,7 @@ int main(void)
 	  if(is_Receive_Complete()){
 		  Event *evt = malloc (sizeof(Event));
 		  //TODO (Event*)&evt durch evt ersetzt, da evt schon ein Pointer ist -> sonst HardFaultHandler
-		  setEventClass(evt,Routine);
+		  setEventClass(evt,Interrupt);
 		  setEventMessage(evt,StatusInfoReceived);
 		  addEvent(&Q_USB, evt);
 	  	  }

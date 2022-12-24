@@ -283,14 +283,14 @@ void transmit_info()
 	free(string);
 }
 
-void decodeMessage(char *message)
+void decodeMessage(char *message, EventQueue **queue)
 {
 	if (strstr(message, UEB) != NULL) {
 		decodeUEBMessage(message);
 	} else if (strstr(message, PARAMETER) != NULL) {
 		decodePeripheralMessage(message);
 	} else if (strstr(message, DATATRANSMISSION) != NULL) {
-		createInfoEvent();
+		createEvent(queue);
 		//decodeDataTransmissionMessage(message);
 	}  else if (strstr(message, UEBREADY) != NULL) {
 		transmit_info();
@@ -300,7 +300,7 @@ void decodeMessage(char *message)
 
 }
 
-void getMessage()
+void getMessage(EventQueue **queue)
 {
 	if(is_Receive_Complete()) {
 		get_Receive_Message(receivebuffer, BUFFERSIZE);
@@ -308,7 +308,7 @@ void getMessage()
 		uint8_t i = 0;
 		token = strtok(tokenizebuffer, DELIMITER_FULLMESSAGE);
 		while (token != NULL) {
-			decodeMessage(token);
+			decodeMessage(token, queue);
 			token = strtok(NULL, DELIMITER_FULLMESSAGE);
 			i++;
 		}
@@ -320,27 +320,27 @@ void provideStatus(UEB_StatusType *uebstatus)
 	pUEB_status = uebstatus;
 }
 
-void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue)
-{
-	pMainEventQueue = main_queue;
-	pUSBEventQueue = usb_queue;
-	pDataTransmissionEventQueue = datatransmission_queue;
-}
+//void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue)
+//{
+//	pMainEventQueue = main_queue;
+//	pUSBEventQueue = usb_queue;
+//	pDataTransmissionEventQueue = datatransmission_queue;
+//}
 
 void createStatusEvent()
 {
-	Event *evt = malloc (sizeof(Event));
-	(*evt).class = 0;
-	(*evt).message = 0;
-	addEvent(&pMainEventQueue, evt);
+//	Event *evt = malloc (sizeof(Event));
+//	(*evt).class = 0;
+//	(*evt).message = 0;
+//	addEvent(&pMainEventQueue, evt);
 }
 
-void createInfoEvent()
+void createEvent(EventQueue **queue)
 {
 	Event *evt = malloc (sizeof(Event));
-	(*evt).class = 0;
-	(*evt).message = 1;
-	addEvent(&pDataTransmissionEventQueue, evt);
+	setEventClass(evt,Interrupt);
+	setEventMessage(evt,2);
+	addEvent(queue, evt);
 }
 
 
