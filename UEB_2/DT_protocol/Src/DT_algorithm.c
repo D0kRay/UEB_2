@@ -14,14 +14,14 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 
 	uint8_t* Buffer = malloc(DT_BUFFER_SIZE);
 
-	memset(Buffer, 0, DT_BUFFER_SIZE);
+	memset(Buffer, 0x00, DT_BUFFER_SIZE);
 
 	uint8_t StatusByte;
 	list_node_t *dt_set;
 
 
 	int count = 0;
-	for(int i = DT_BUFFER_OS2; i <= 1024; i += DT_PACKAGE_SIZE){
+	for(int i = DT_BUFFER_OS2; i < 1025; i += DT_PACKAGE_SIZE){ //TODO <=1024???
 		StatusByte = 0;
 		dt_set = list_at(DT_list, count);
 		if(dt_set == NULL){
