@@ -155,9 +155,11 @@ list_find(list_t *self, uint8_t ID) {
 
   list_node_t *node = self->head;
 
-  while (node->next == NULL) {
+  while(node != NULL) {
 	 if(node->val->ID == ID)
 		 return node;
+	 else
+		 node = node->next;
   }
   return NULL;
 }
