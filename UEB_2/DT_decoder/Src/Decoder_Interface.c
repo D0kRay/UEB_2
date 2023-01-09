@@ -45,7 +45,7 @@ uint16_t getDecimalOfFloat(float f)
 	return (uint16_t)temp;
 }
 //TODO mit strstr stelle des nächsten strichpunkt suchen und message bis dahin abschneiden
-void decodeUEBMessage(char* message)
+void decodeUEBMessage(char* message, EventQueue **queue)
 {
 	if(strstr(message, UEB) != NULL) {
 		message = strstr(message, DELIMITER_PARTMESSAGE)+1;
@@ -109,7 +109,7 @@ void decodeUEBMessage(char* message)
 			if(strstr(message, D_ENABLE) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				pUEB_status->status = getFloatOfMessage(message);
-				createStatusEvent();
+				createStatusEvent(queue);
 			}
 		}
 	} else {
@@ -286,7 +286,7 @@ void transmit_info()
 void decodeMessage(char *message, EventQueue **queue)
 {
 	if (strstr(message, UEB) != NULL) {
-		decodeUEBMessage(message);
+		decodeUEBMessage(message, queue);
 	} else if (strstr(message, PARAMETER) != NULL) {
 		decodePeripheralMessage(message);
 	} else if (strstr(message, DATATRANSMISSION) != NULL) {
@@ -327,12 +327,12 @@ void provideStatus(UEB_StatusType *uebstatus)
 //	pDataTransmissionEventQueue = datatransmission_queue;
 //}
 
-void createStatusEvent()
+void createStatusEvent(EventQueue **queue)
 {
-//	Event *evt = malloc (sizeof(Event));
-//	(*evt).class = 0;
-//	(*evt).message = 0;
-//	addEvent(&pMainEventQueue, evt);
+	Event *evt = malloc (sizeof(Event));
+	setEventClass(evt,Interrupt);
+	setEventMessage(evt,3);
+	addEvent(queue, evt);
 }
 
 void createEvent(EventQueue **queue)

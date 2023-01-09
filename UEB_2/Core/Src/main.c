@@ -499,6 +499,12 @@ int main(void)
 
 				  break;
 
+			  case SetStatusReceived:
+				  setEventClass(&evt,Interrupt);
+				  setEventMessage(&evt,UEB_params_set);
+				  addEvent(&Q_Main,&evt);
+				  break;
+
 			  default:
 				  break;
 			  }

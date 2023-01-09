@@ -55,7 +55,8 @@ typedef enum{
 typedef enum{
 	DTBufferReady = 0,
 	StatusInfoReceived = 1,
-	StatusCommandReceived = 2
+	StatusCommandReceived = 2,
+	SetStatusReceived = 3
 }USB_Messages;
 
 /* USER CODE END EC */

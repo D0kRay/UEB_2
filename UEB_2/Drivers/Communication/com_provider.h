@@ -27,6 +27,7 @@
 
 
 uint8_t is_Receive_Complete();
+uint8_t is_Transmit_Complete();
 uint8_t isBufferEmpty(uint8_t buffernumber);
 
 void get_Receive_Message(uint8_t *Buffer, uint32_t size);
