@@ -49,14 +49,16 @@ typedef enum{
 }Main_Messages;
 
 typedef enum{
-	DataTransmissionComplete = 0
+	DataTransmissionComplete = 0,
+	GUIFeedbackComplete = 3
 }DT_Messages;
 
 typedef enum{
 	DTBufferReady = 0,
 	StatusInfoReceived = 1,
 	StatusCommandReceived = 2,
-	SetStatusReceived = 3
+	SetStatusReceived = 3,
+	DTTransmissionComplete = 4
 }USB_Messages;
 
 /* USER CODE END EC */

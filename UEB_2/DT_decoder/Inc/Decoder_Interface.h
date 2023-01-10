@@ -133,7 +133,7 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 
 //Functions
 void createStatusEvent();
-void createEvent(EventQueue **queue);
+void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage);
 void getMessage(EventQueue **queue);
 void getNewStatus(UEB_StatusType *uebstatus);
 

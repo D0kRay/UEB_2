@@ -10,6 +10,13 @@
 
 
 static const char DATATRANSMISSION[] = "DT";
+static const char DTCOMPLETE[] = "COMPLETE";
+//static const char DATATRANSMISSION[] = "DT";
+//static const char DATATRANSMISSION[] = "DT";
+//static const char DATATRANSMISSION[] = "DT";
+//static const char DATATRANSMISSION[] = "DT";
+//static const char DATATRANSMISSION[] = "DT";
+
 //TODO tbd
 
 #endif /* INC_DATATRANSMISSION_DECODER_H_ */

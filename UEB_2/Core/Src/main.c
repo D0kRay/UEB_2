@@ -508,6 +508,11 @@ int main(void)
 				  addEvent(&Q_Main,&evt);
 				  break;
 
+			  case DTTransmissionComplete:
+				  setEventClass(&evt,Interrupt);
+				  setEventMessage(&evt,GUIFeedbackComplete);
+				  addEvent(&Q_DataTransmission,&evt);
+
 			  default:
 				  break;
 			  }
@@ -572,6 +577,11 @@ int main(void)
 				 if(DT_isError(status))
 					 break;
 				 break;
+
+			  case GUIFeedbackComplete:
+				  //TODO Tranmission-Complete von GUI gesendet
+				  //Im Event ist im ptr_data die ID hinterlegt
+				  break;
 
 			  default:
 				  break;

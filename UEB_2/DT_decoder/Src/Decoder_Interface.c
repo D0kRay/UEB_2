@@ -222,48 +222,71 @@ void decodePeripheralMessage(char* message)
 	}
 }
 
-void decodeDataTransmissionMessage(char* message)
+void decodeDataTransmissionMessage(char* message, EventQueue **queue)
 {
-	if(strstr(message, UEB) != NULL) {
-		message = message + strlen(UEB);
-		if(strstr(message, SOFTSTART) != NULL){
-			message = message + strlen(UEB);
-			if(strstr(message, D_ENABLE) != NULL) {
-
-			} else if (strstr(message, FREQUENCY) != NULL) {
-				if (strstr(message, VALUE) != NULL) {
+	if(strstr(message, DATATRANSMISSION) != NULL) {
+			message = strstr(message, DELIMITER_PARTMESSAGE)+1;
+			if(strstr(message, DTCOMPLETE) != NULL){
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+				if(strlen(message) == 2) {
+					Event *evt = malloc (sizeof(Event));
+					setEventClass(evt,Interrupt);
+					setEventMessage(evt,DTTransmissionComplete);
+					evt->ptr_data = &message;
+					evt->size_data = sizeof(message);
+					addEvent(queue, evt);
+//					createEvent(queue, Interrupt, DTTransmissionComplete);
 
 				}
+			} else if(strstr(message, CONFIGURATION) != NULL){
+				Event *evt = malloc (sizeof(Event));
+				setEventClass(evt,Interrupt);
+				setEventMessage(evt,StatusCommandReceived);
+				addEvent(queue, evt);
+//
+//			} else if(strstr(message, PARAMETER) != NULL){
+//				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//				if(strstr(message, VCC) != NULL) {
+//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//					if (strstr(message, VALUE) != NULL) {
+//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//						pUEB_status->vccvoltage = getFloatOfMessage(message);
+//					}
+//
+//				} else if (strstr(message, VOUT) != NULL) {
+//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//					if (strstr(message, VALUE) != NULL) {
+//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//						pUEB_status->outvoltage = getFloatOfMessage(message);
+//					}
+//
+//				} else if (strstr(message, FREQUENCY) != NULL) {
+//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//					if (strstr(message, VALUE) != NULL) {
+//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//						pUEB_status->frequency = getFloatOfMessage(message);
+//					}
+//
+//				}else if (strstr(message, CURRENT) != NULL) {
+//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//					if (strstr(message, VALUE) != NULL) {
+//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//						pUEB_status->maxcurrent = getFloatOfMessage(message);
+//					}
+//
+//				}
+//
+//			} else if(strstr(message, SYSTEM) != NULL){
+//				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//				if(strstr(message, D_ENABLE) != NULL) {
+//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+//					pUEB_status->status = getFloatOfMessage(message);
+//					createStatusEvent(queue);
+//				}
 			}
-		} else if(strstr(message, CONFIGURATION) != NULL){
-			message = message + strlen(UEB);
-			if(strstr(message, TRDHARMONIC) != NULL) {
-
-			} else if (strstr(message, ROTATION) != NULL) {
-
-			}
-		} else if(strstr(message, PARAMETER) != NULL){
-			message = message + strlen(UEB);
-			if(strstr(message, VCC) != NULL) {
-				message = message + strlen(UEB);
-				if (strstr(message, VALUE) != NULL) {
-
-				}
-			} else if (strstr(message, VOUT) != NULL) {
-				message = message + strlen(UEB);
-				if (strstr(message, VALUE) != NULL) {
-
-				}
-			} else if (strstr(message, FREQUENCY) != NULL) {
-				message = message + strlen(UEB);
-				if (strstr(message, VALUE) != NULL) {
-
-				}
-			}
+		} else {
+			TransmitBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
 		}
-	} else {
-		TransmitBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
-	}
 }
 
 void transmit_info()
@@ -285,13 +308,13 @@ void transmit_info()
 
 void decodeMessage(char *message, EventQueue **queue)
 {
+	message[strlen(message)-1] = '\0';
 	if (strstr(message, UEB) != NULL) {
 		decodeUEBMessage(message, queue);
 	} else if (strstr(message, PARAMETER) != NULL) {
 		decodePeripheralMessage(message);
 	} else if (strstr(message, DATATRANSMISSION) != NULL) {
-		createEvent(queue);
-		//decodeDataTransmissionMessage(message);
+		decodeDataTransmissionMessage(message, queue);
 	}  else if (strstr(message, UEBREADY) != NULL) {
 		transmit_info();
 	} else {
@@ -335,11 +358,11 @@ void createStatusEvent(EventQueue **queue)
 	addEvent(queue, evt);
 }
 
-void createEvent(EventQueue **queue)
+void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage)
 {
 	Event *evt = malloc (sizeof(Event));
-	setEventClass(evt,Interrupt);
-	setEventMessage(evt,2);
+	setEventClass(evt,class);
+	setEventMessage(evt,eventMessage);
 	addEvent(queue, evt);
 }
 

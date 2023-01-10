@@ -21,7 +21,7 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 
 
 	int count = 0;
-	for(int i = DT_BUFFER_OS2; i < 1025; i += DT_PACKAGE_SIZE){ //TODO <=1024???
+	for(int i = DT_BUFFER_OS2; i < 1024; i += DT_PACKAGE_SIZE){ //TODO <=1024???
 		StatusByte = 0;
 		dt_set = list_at(DT_list, count);
 		if(dt_set == NULL){
