@@ -49,16 +49,23 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 
 				void* temp = dt_set->val->Address + dt_set->val->Counter * DT_PACKAGE_DATA_SIZE;
 
-				memcpy(Buffer + i + Data_OS, 		temp, 		DT_PACKAGE_DATA_SIZE);
+				if(dt_set->val->Counter == dt_set->val->MaxPackages){
+					memcpy(Buffer + i + Data_OS, 		temp, 		(dt_set->val->Size - (dt_set->val->MaxPackages) * DT_PACKAGE_DATA_SIZE));
+					StatusByte |= DT_TC;
+				}
+				else
+					memcpy(Buffer + i + Data_OS, 		temp, 		DT_PACKAGE_DATA_SIZE);
+
+				memcpy(Buffer + i + StatusFlags_OS, &StatusByte, sizeof(uint8_t));
 
 				if(dt_set->val->Counter == dt_set->val->MaxPackages){
 					ST_push(dt_set->val->ID);
 					list_remove(DT_list, dt_set);
-					StatusByte |= DT_TC;
 				}
+
 				if(dt_set->val->Counter < dt_set->val->MaxPackages)
 					dt_set->val->Counter++;
-				memcpy(Buffer + i + StatusFlags_OS, &StatusByte, sizeof(uint8_t));
+
 			}
 		}
 

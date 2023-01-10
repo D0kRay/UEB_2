@@ -398,6 +398,9 @@ int main(void)
     EventQueue* Q_Main 				= EventQueue_Init();
     ST_init();
 
+    uint8_t TestID;
+    uint8_t SineID;
+
   //UEB_MeasuresType uebmeasure;
   provideStatus(&uebstatus);
   uint16_t counterM = 0;
@@ -543,7 +546,6 @@ int main(void)
 		  Event evt;
 		  getEvent(&Q_DataTransmission, &evt);
 		  DT_status status;
-		  uint8_t ID;
 		  switch(getEventClass(evt)){
 		  case Interrupt:
 
@@ -557,16 +559,16 @@ int main(void)
 
 			  case 1:
 				  //TODO Wie gebe ich hier meine ID ein wenn ich zwei Sachen übertragen will?
-				 status = DT_Init(&ID, DT_TestString, sizeof(DT_TestString));
-				 status = DT_Init(&ID, DT_SineString, sizeof(DT_SineString));
+				 status = DT_Init(&TestID, DT_TestString, sizeof(DT_TestString));
+				 status = DT_Init(&SineID, DT_SineString, sizeof(DT_SineString));
 				 if(DT_isError(status))
 					 break;
 				 break;
 
 			  case 2:
 				  //TODO IDs nicht fix setzen
-				 status = DT_Start(0xfe);
-				 status = DT_Start(0xfd);
+				 status = DT_Start(TestID);
+				 status = DT_Start(SineID);
 				 if(DT_isError(status))
 					 break;
 				 break;
