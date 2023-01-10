@@ -70,15 +70,13 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN PV */
-
-
 float 			frequency = 120;				//enter frequency of the 3-phase sine (range of values: 0.1Hz to 200Hz)
-float 			v_bridge_uf = 11;			//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
+float 			v_bridge_uf = 12;				//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
 float 			voltage_ref = 6;				//enter your preferred voltage for the amplitude of the sine (range of Values: 1V to 0.95*"v_bridge_uf")
-bool 			rotationDirectionCW = false;		//enter the direction of rotation, true -> clockwise; false -> counterclockwise
+bool 			rotationDirectionCW = false;	//enter the direction of rotation, true -> clockwise; false -> counterclockwise
 bool 			enableThirdHarmonic = true;	    //enter true, if you want to enable the third harmonic mode
 bool 			enableSoftstarter = false;		//enter true, if you want the motor to start slowly
-float			softstarterDuration = 1;		//enter duration of the softstarter ramp in seconds
+float			softstarterDuration = 5;		//enter duration of the softstarter ramp in seconds
 const float		overCurrentThreshold = 10; 		//enter the allowed current in ampere (range of values: 0 to 10 Ampere)
 uint32_t		numberOfAveragedValues = 10;    //enter by how many current values you want to calculate the average
 
@@ -88,22 +86,21 @@ float			maxTensionRelationship = 0.85;  //the max "voltage_ref" = "v_bridge_uf" 
 
 
 float 			amperePerDigits = 0.0007575757; //(0.05mV/Digits)/(66mV/A)=0.0007575757A/Digit
-float 			bufferSum_IHB1 = 0;
-float 			bufferSum_IHB2 = 0;
-float 			bufferSum_IHB3 = 0;
-float 			bufferAverage_IHB1 = 0;
-float 			bufferAverage_IHB2 = 0;
-float 			bufferAverage_IHB3 = 0;
-float 			bufferCalibrated1 = -33900;
-float 			bufferCalibrated2 = -33900;
-float 			bufferCalibrated3 = -33900;
+float			bufferAverage[7] = {0, 0, 0, 0, 0, 0, 0};
+float			bufferCalibrated[7] = {-33900, -33900, -33900, -33900, -33900, -33900, -33900};
 float 			current_IHB1 = 0;
 float 			current_IHB2 = 0;
 float 			current_IHB3 = 0;
-
+float 			current_HB1H = 0;
+float 			current_HB2H = 0;
+float 			current_V_BRUECKE = 0;
+float 			current_I_BRUECKE = 0;
+bool			current_measured_inPeriod_1;
+bool			current_measured_inPeriod_2;
+bool			current_measured_inPeriod_3;
 uint32_t 		WDHTR = 0;
 
-const float 	pwmFrequency = 20000; 			//enter PWM-Frequency for the sine modulation
+const float 	pwmFrequency = 20000;	//enter PWM-Frequency for the sine modulation
 const uint32_t 	numberOfSineValues = 1800; 		//how many Values are entered in the "pulseWidth" Array
 const uint32_t 	rangeOfSineValues = 1800;  		//the highest value in the "pulseWidth" Array
 
@@ -112,6 +109,9 @@ uint32_t 		counterperiod_TIM2 =    clockFrequency/pwmFrequency-1;				        //1
 uint32_t		counterperiod_TIM3 = clockFrequency/pwmFrequency*10-1;
 uint32_t		counterperiod_TIM4 =  600000-1;
 float 			pwmPeriodConversion = ((clockFrequency/pwmFrequency)/2)/rangeOfSineValues;//((120MHz/20kHz)/2)/1800 = 1.6666666666
+uint32_t		counter_on_channel_1 = 0;				//counter value for PWM on time for channel 1
+uint32_t		counter_on_channel_2 = 0;				//counter value for PWM on time for channel 2
+uint32_t		counter_on_channel_3 = 0;				//counter value for PWM on time for channel 3
 
 uint8_t 		error = no_Error;
 
@@ -119,10 +119,11 @@ uint8_t 		error = no_Error;
 unsigned 		bufferFlag;
 unsigned 		seqFlag;
 uint32_t		convres;
-uint32_t     	buffer[100][3];	//into this buffer, the DMA writes the measured current values
+uint16_t     	buffer[100][7];	//into this buffer, the DMA writes the measured current values
 
 int				rotVelo = 0;	//rotation velocity of the motor in rpm
-
+int cntr;
+int cntr2;
 //Wechselberger, Kirchhoff USB
 uint8_t			transmiton = 0;
 
@@ -140,7 +141,7 @@ static void MX_TIM5_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern void measure();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -227,7 +228,7 @@ void ADCDMA_Init (void)
  DMA1_Stream0->CR |= DMA_SxCR_TCIE;									// transfer complete Interrupt enable
  DMAMUX1_Channel0->CCR = 0x00000009;								// Channel0 ADC1
  //DMA1_Stream0->NDTR = 3;											// DMA_BufferSize for every sequence
- DMA1_Stream0->NDTR = 300;	 										// DMA_BufferSize for full Buffer
+ DMA1_Stream0->NDTR = 700;	 										// DMA_BufferSize for full Buffer
  DMA1_Stream0->M0AR = (uint32_t)(&(buffer[0][0]));					// DMA_Memory0BaseAddr
  DMA1->LIFCR = DMA_LIFCR_CTCIF0;
  DMA1_Stream0->CR |= DMA_SxCR_EN; 									// Enable the DMA
@@ -240,11 +241,25 @@ void ADC_Init (void)
 	ADC1->CR &= ~ADC_CR_ADEN;
 	RCC->AHB4ENR |= RCC_AHB4ENR_GPIOAEN;							// enable clock for GPIO PA4 und PA6 ADC1 Channel 3 und 18
 	RCC->AHB4ENR |= RCC_AHB4ENR_GPIOCEN;							// enable clock for GPIO PC4 ADC1 Channel 4
+
+	RCC->AHB4ENR |= RCC_AHB4ENR_GPIOFEN;
+
 	RCC->AHB1ENR |= RCC_AHB1ENR_ADC12EN;              				// enable clock for ADC1
 	GPIOA->MODER |= 0x00003300;										// pin PA4 und PA6 analog Input
 	GPIOA->PUPDR &= 0xFFFF00FF;        								// pin PA4 und PA6 no pull-up, no pull-down
 	GPIOC->MODER |= 0x00000300;                       				// pin PC4 analog Input
 	GPIOC->PUPDR &= 0xFFFFF0FF;        								// pin PC4 no pull-up, no pull-down
+
+	GPIOA->MODER |= (3<<6);		//PA3
+	GPIOA->MODER |= (3<<14);	//PA7
+	GPIOC->MODER |= (3<<10);	//PC5
+	GPIOF->MODER |= (3<<24);	//PF12
+
+	GPIOA->PUPDR &= ~((1<<6) | (1<<7));		//PA3
+	GPIOA->PUPDR &= ~((1<<14) | (1<<15));	//PA7
+	GPIOC->PUPDR &= ~((1<<10) | (1<<11));	//PC5
+	GPIOF->PUPDR &= ~((1<<24) | (1<<25));	//PF12
+
 	ADC1->CFGR &= ~ADC_CFGR_RES;									// 00: 16 bit resolution
 	//ADC1->CFGR |= ADC_CFGR_DISCEN;								// 1: discontinuous regular mode
 	ADC1->CFGR &= ~ADC_CFGR_DISCEN;
@@ -254,7 +269,7 @@ void ADC_Init (void)
 	//ADC1->IER |= ADC_IER_EOSIE;									// Interrupt sequence is complete
 	ADC1->IER |= ADC_IER_AWD1IE;	 								// Watchdog 1 interrupt enable
 
-	WDHTR = overCurrentThreshold/amperePerDigits-bufferCalibrated1;
+	WDHTR = overCurrentThreshold/amperePerDigits-bufferCalibrated[0];
 
 	ADC1->HTR1 = WDHTR;	 											// Watchdog 1 high threshold
 	ADC1->CFGR |= ADC_CFGR_AWD1EN;									// Watchdog 1 enable
@@ -264,12 +279,29 @@ void ADC_Init (void)
 	//ADC1->CFGR |= ADC_CFGR_DMNGT_0;								// 01: DMA one shot
 	ADC1->CFGR |= ADC_CFGR_OVRMOD;									// 1: last conversation
 	ADC1->IER &= ~ADC_IER_OVRIE;									// overrun Interrupt disabled
-	ADC1->SMPR2 = 0x00004800;										// 100: 32 cycles sampling time 32 cicles for Channel 3 und 4
-	ADC1->SMPR2 |= 0x04000000;										// 100: 32 cycles sampling time 32 cicles for Channel 18
+
+	//ADC1->SMPR2 = 0x00004800;										// 100: 32 cycles sampling time 32 cicles for Channel 3 und 4
+	//ADC1->SMPR2 |= 0x04000000;										// 100: 32 cycles sampling time 32 cicles for Channel 18
+
+
+	ADC1->SMPR2 &= ~((7<<9) | (7<<12) | (7<<18) | (7<<21) | (7<<24));	//channel 3, 4, 6,7, 8
+	ADC1->SMPR1 &= ~((7<<15) | (7<<24));								//channel 15, 18
+
 	//ADC1->PCSEL = 0x00000010;
-	ADC1->PCSEL = 0x00040018;										// preselect Channel 4, 3, 18
+	//ADC1->PCSEL = 0x00040018;										// preselect Channel 4, 3, 18
+	ADC1->PCSEL = 0x481D8;
 	//ADC1->SQR1 = 0x00000100;
-	ADC1->SQR1 = 0x00483102;										// Channel sequence assign to Channel 4, 3, 18
+	//ADC1->SQR1 = 0x00483102;										// Channel sequence assign to Channel 4, 3, 18
+
+	ADC1->SQR1 |= (6<<20);
+	ADC1->SQR3 |= (3<<0);  // SEQ1 for Channel 1
+	ADC1->SQR3 |= (4<<5);  // SEQ2 for CHannel 4
+	ADC1->SQR3 |= (18<<10);  // SEQ3 for CHannel 18
+	ADC1->SQR3 |= (8<<15);  // SEQ4 for Channel 8
+	ADC1->SQR3 |= (15<<20);  // SEQ5 for CHannel 15
+	ADC1->SQR3 |= (6<<25);  // SEQ6 for CHannel 6
+	ADC1->SQR2 |= (7<<0);  // SEQ7 for CHannel 7
+
 	ADC12_COMMON->CCR &= ~ADC_CCR_PRESC;							// ADCLK not divided
 	ADC12_COMMON->CCR |= 0x002C0000;								// ADCLK Clock div 256
 	//ADC12_COMMON->CCR |= 0x00240000;								// ADCLK Clock div 64
@@ -280,6 +312,7 @@ void ADC_Init (void)
 	ADC1->CR |= ADC_CR_ADEN;										// AD Converter on
 	HAL_NVIC_EnableIRQ (ADC_IRQn);
 }
+
 
 
 void setParameters(UEB_StatusType *ueb_status)
@@ -377,6 +410,8 @@ int main(void)
 
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 
+  HAL_GPIO_WritePin(Test_pulse_GPIO_Port, Test_pulse_Pin, 1);
+
   //Wechselberger Kirchhoff below
   UEB_StatusType uebstatus = {
 		  .status = UEB_STOP,
@@ -418,6 +453,34 @@ int main(void)
 
   while (1)
   {
+
+    cntr = TIM2->CNT;
+        if(cntr>(counter_on_channel_1/2+(counterperiod_TIM2-counter_on_channel_1)/2))
+        {
+        measure(1);
+        measure(4);
+        measure(6);
+        measure(7);
+        current_measured_inPeriod_1 = true;
+        }
+
+        if(cntr>(counter_on_channel_2/2+(counterperiod_TIM2-counter_on_channel_2)/2))
+        {
+        measure(2);
+        measure(5);
+          current_measured_inPeriod_2 = true;
+        }
+
+        if(cntr>(counter_on_channel_3/2+(counterperiod_TIM2-counter_on_channel_3)/2))
+        {
+          measure(3);
+          current_measured_inPeriod_3 = true;
+        }
+
+        measure(4);
+
+      }
+
 	  // Main Queue
 	  if(isEventQueued(Q_Main)){
 		  Event evt;
