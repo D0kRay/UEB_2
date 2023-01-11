@@ -72,7 +72,7 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern float counter;
+
 //all "extern" variables have their origin and are defined in "main.c"
 //Variables needed for managing the program structure, used in TIM4
 uint8_t 					dipPositionPrevious = 0; //the value of the previous Dip Switch position (0 to 15)
@@ -190,9 +190,6 @@ extern float 				pwmPeriodConversion;
 extern uint32_t 			numberOfSineValues;
 extern uint32_t 			rangeOfSineValues;
 
-extern uint32_t				counter_on_channel_1;
-extern uint32_t				counter_on_channel_2;
-extern uint32_t				counter_on_channel_3;
 
 const float 				pi = 3.141592653;
 float 						omegaT = 0;
@@ -209,20 +206,20 @@ extern uint32_t     		buffer[1000][3];
 extern uint32_t				numberOfAveragedValues;
 extern float 				overCurrentThreshold;
 extern float 				amperePerDigits;
-extern float				bufferAverage[7];
-extern float				bufferCalibrated[7];
-extern float 				bufferCalibrated6;
+extern float 				bufferSum_IHB1;
+extern float 				bufferSum_IHB2;
+extern float 			    bufferSum_IHB3;
+extern float 				bufferAverage_IHB1;
+extern float 				bufferAverage_IHB2;
+extern float 				bufferAverage_IHB3;
+extern float 				bufferCalibrated1;
+extern float 				bufferCalibrated2;
+extern float 				bufferCalibrated3;
 extern float 				current_IHB1;
 extern float 				current_IHB2;
 extern float 				current_IHB3;
-extern float 				current_HB1H;
-extern float 				current_HB2H;
-extern float 				current_V_BRUECKE;
-extern float 				current_I_BRUECKE;
 extern uint32_t 			WDHTR;
-extern bool					current_measured_inPeriod_1;
-extern bool					current_measured_inPeriod_2;
-extern bool					current_measured_inPeriod_3;
+
 
 //variables for third harmonic
 extern 						bool enableThirdHarmonic;
@@ -304,90 +301,11 @@ float VR(float la, float d, float tSamp)	//function for the amplification of the
 	return vr;
 }*/
 
-/**
-  * @brief Take measure from adc by reading from buffer
-  * @input channel to be red: 1 = IHB1, 2 = IHB_2, 3 = IHB_3, 4 = HB1H, 5 = HB2H, 6 = V_BRUECKE, 7 = I_BRUECKE
-  */
-void measure(int channel)
-{
-	long sum = 0;
-	  //With turning on the pin PE4 at this point, you can check with the oscilloscope at which time TIM2 starts.
-	  //At the end of TIM2 the Pin gets turned off, so you can see how much time the calculation of TIM2 took.
-	//HAL_GPIO_WritePin(Test_pulse_GPIO_Port, Test_pulse_Pin, 1);
-
-	switch (channel) {
-	case 1:
-		  //calculating the average of the current measured in the three phases
-		  for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][0];
-		  }
-		  bufferAverage[0] = sum/numberOfAveragedValues;
-		  current_IHB1 = (bufferCalibrated[0]+bufferAverage[0])*amperePerDigits;
-		  break;
-	case 2:
-		  //calculating the average of the current measured in the three phases
-		  for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][1];
-		  }
-		  bufferAverage[1] = sum/numberOfAveragedValues;
-		  current_IHB2 = (bufferCalibrated[1]+bufferAverage[1])*amperePerDigits;
-		  break;
-	case 3:
-		  //calculating the average of the current measured in the three phases
-		  for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][2];
-		  }
-		  bufferAverage[2] = sum/numberOfAveragedValues;
-		  current_IHB3 = (bufferCalibrated[2]+bufferAverage[2])*amperePerDigits;
-		  break;
-	case 4:
-		  //calculating the average of the measured mosfet signal
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][3];
-		  }
-		bufferAverage[3] = sum/numberOfAveragedValues;
-		current_HB1H = bufferAverage[3]+bufferCalibrated[3];
-		  break;
-	case 5:
-		  //calculating the average of the measured mosfet signal
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][4];
-		  }
-		bufferAverage[4] = sum/numberOfAveragedValues;
-		current_HB2H = bufferAverage[4]+bufferCalibrated[4];
-		  break;
-	case 6:
-		  //calculating the average of the source voltage
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][5];
-		  }
-		bufferAverage[5] = sum/numberOfAveragedValues;
-		current_V_BRUECKE = bufferAverage[5]+bufferCalibrated[5];
-		  break;
-	case 7:
-		  //calculating the average of the current taken from source
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][6];
-		  }
-		bufferAverage[6] = sum/numberOfAveragedValues;
-		current_I_BRUECKE = bufferAverage[6]+bufferCalibrated[6];
-		  break;
-	default:
-		break;
-	}
-
-}
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
@@ -553,27 +471,38 @@ void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
 
-	current_measured_inPeriod_1 = false;
-	current_measured_inPeriod_2 = false;
-	current_measured_inPeriod_3 = false;
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
 
   //With turning on the pin PE4 at this point, you can check with the oscilloscope at which time TIM2 starts.
   //At the end of TIM2 the Pin gets turned off, so you can see how much time the calculation of TIM2 took.
-  //HAL_GPIO_WritePin(Test_pulse_GPIO_Port, Test_pulse_Pin, 1);
+  HAL_GPIO_WritePin(Test_pulse_GPIO_Port, Test_pulse_Pin, 1);
 
+  //calculating the average of the current measured in the three phases
+  for(int counter=0; counter<numberOfAveragedValues; counter++)
+  {
+	  bufferSum_IHB1 += buffer[counter][0];
+	  bufferSum_IHB2 += buffer[counter][1];
+	  bufferSum_IHB3 += buffer[counter][2];
+  }
+  bufferAverage_IHB1 = bufferSum_IHB1/numberOfAveragedValues;
+  bufferAverage_IHB2 = bufferSum_IHB2/numberOfAveragedValues;
+  bufferAverage_IHB3 = bufferSum_IHB3/numberOfAveragedValues;
 
+  bufferSum_IHB1 = 0;
+  bufferSum_IHB2 = 0;
+  bufferSum_IHB3 = 0;
+
+  current_IHB1 = (bufferCalibrated1+bufferAverage_IHB1)*amperePerDigits;
+  current_IHB2 = (bufferCalibrated2+bufferAverage_IHB2)*amperePerDigits;
+  current_IHB3 = (bufferCalibrated3+bufferAverage_IHB3)*amperePerDigits;
 
   switch (operationMode)
       {
   	  	  case turnOff://Dip 0000 -> turn off the motor
 		  {
 			  HAL_GPIO_WritePin(EN_BRUECKE_1_GPIO_Port, EN_BRUECKE_1_Pin, 0); //disable bridge
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,0);
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,0);
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3,0);
 			  operationMode = do_nothing;
 		  }
   	  	  case do_nothing://after turning the motor off -> do nothing
@@ -701,25 +630,20 @@ void TIM2_IRQHandler(void)
 			  //adjusting the current duty cycles of the PWM signals
 
 			  //adjusting angle1
-			  counter_on_channel_1 = pulseWidth1*pwmPeriodConversion
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,
+					  pulseWidth1*pwmPeriodConversion
 					  *(voltage_ref/(v_bridge_uf*maxTensionRelationship))
-					  +0.05*rangeOfSineValues*pwmPeriodConversion;
-
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,counter_on_channel_1);
-
+					  +0.05*rangeOfSineValues*pwmPeriodConversion);
 			  //adjusting angle2
-			  counter_on_channel_2 = pulseWidth2*pwmPeriodConversion
-						 *(voltage_ref/(v_bridge_uf*maxTensionRelationship))
-						 +0.05*rangeOfSineValues*pwmPeriodConversion;
-
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,counter_on_channel_2);
-
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,
+					 pulseWidth2*pwmPeriodConversion
+					 *(voltage_ref/(v_bridge_uf*maxTensionRelationship))
+					 +0.05*rangeOfSineValues*pwmPeriodConversion);
 			  //adjusting angle3
-			  counter_on_channel_3 = pulseWidth3*pwmPeriodConversion
-						 *(voltage_ref/(v_bridge_uf*maxTensionRelationship))
-						 +0.05*rangeOfSineValues*pwmPeriodConversion;
-
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3,counter_on_channel_3);
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3,
+					 pulseWidth3*pwmPeriodConversion
+					 *(voltage_ref/(v_bridge_uf*maxTensionRelationship))
+					 +0.05*rangeOfSineValues*pwmPeriodConversion);
 			  break;
 		  }
 
@@ -744,22 +668,21 @@ void TIM2_IRQHandler(void)
 			  }
 			  if(false == rotationDirectionCW) 								//motor rotates counterclockwise
 			  {
-				  counter_on_channel_1 = rangeOfSineValues*pwmPeriodConversion*0.05;
-				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,counter_on_channel_1);	//Adjusting x7_U as 0V
+				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,				//Adjusting x7_U as 0V
+						  rangeOfSineValues*pwmPeriodConversion*0.05);
 
-				  counter_on_channel_2 =  rangeOfSineValues*pwmPeriodConversion*(voltage_ref*softstarter/(v_bridge_uf))
-								+(rangeOfSineValues*pwmPeriodConversion*0.05);
-				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,counter_on_channel_2);	//Adjusting x7_V as the voltage_ref of DC Motor
-
+				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,				//Adjusting x7_V as the voltage_ref of DC Motor
+						  rangeOfSineValues*pwmPeriodConversion*(voltage_ref*softstarter/(v_bridge_uf))
+						+(rangeOfSineValues*pwmPeriodConversion*0.05));
 			  }
 			  else															//motor rotates clockwise
 			  {
-				  counter_on_channel_1 =  rangeOfSineValues*pwmPeriodConversion*(voltage_ref*softstarter/(v_bridge_uf))
-								+(rangeOfSineValues*pwmPeriodConversion*0.05);
-				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,counter_on_channel_1);	//Adjusting x7_U as the voltage_ref of DC Motor
+				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,				//Adjusting x7_U as the voltage_ref of DC Motor
+						  rangeOfSineValues*pwmPeriodConversion*(voltage_ref*softstarter/(v_bridge_uf))
+						+(rangeOfSineValues*pwmPeriodConversion*0.05));
 
-				  counter_on_channel_2 = rangeOfSineValues*pwmPeriodConversion*0.05;
-				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,counter_on_channel_2);	//Adjusting x7_V as 0V
+				  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,				//Adjusting x7_V as 0V
+						  rangeOfSineValues*pwmPeriodConversion*0.05);
 			  }
 
 			  break;
@@ -771,13 +694,10 @@ void TIM2_IRQHandler(void)
 		  }
   	  	  case do_calibrateADC:
   	  	  {
-  	  		  for(int i = 0;i<=6;i++) {
-  	  			bufferCalibrated[i] = 0;
-  	  			measure(i+1);
-  	  			bufferCalibrated[i] = -bufferAverage[i];
-  	  		  }
-
-			  WDHTR = overCurrentThreshold/amperePerDigits-bufferCalibrated[0];
+			  bufferCalibrated1 = - bufferAverage_IHB1;
+			  bufferCalibrated2 = - bufferAverage_IHB2;
+			  bufferCalibrated3 = - bufferAverage_IHB3;
+			  WDHTR = overCurrentThreshold/amperePerDigits-bufferCalibrated1;
 			  ADC1->HTR1 = WDHTR;
 			  break;
   	  	  }
@@ -843,22 +763,21 @@ void TIM2_IRQHandler(void)
 
   	  		  if(false == rotationDirectionCW) 								//motor rotates counterclockwise
   	  		  {
-  	  			  	  	  	  counter_on_channel_1 = rangeOfSineValues*pwmPeriodConversion*0.05;
-  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,counter_on_channel_1);	//Adjusting x7_U as 0V
+  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,				//Adjusting x7_U as 0V
+  	  								  rangeOfSineValues*pwmPeriodConversion*0.05);
 
-  	  						counter_on_channel_2 = rangeOfSineValues*pwmPeriodConversion*controlValuePWM
-									  +(rangeOfSineValues*pwmPeriodConversion*0.05);
-  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,counter_on_channel_2);	//Adjusting x7_V as the voltage_ref of DC Motor
-
+  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,				//Adjusting x7_V as the voltage_ref of DC Motor
+  	  								  rangeOfSineValues*pwmPeriodConversion*controlValuePWM
+									  +(rangeOfSineValues*pwmPeriodConversion*0.05));
   	  		  }
   	  		  else															//motor rotates clockwise
   	  		  {
-  	  			  	  	  counter_on_channel_1 = rangeOfSineValues*pwmPeriodConversion*controlValuePWM
-	  								+(rangeOfSineValues*pwmPeriodConversion*0.05);
-  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,counter_on_channel_1);	//Adjusting x7_U as the voltage_ref of DC Motor
+  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1,				//Adjusting x7_U as the voltage_ref of DC Motor
+  	  								  rangeOfSineValues*pwmPeriodConversion*controlValuePWM
+  	  								+(rangeOfSineValues*pwmPeriodConversion*0.05));
 
-  	  					counter_on_channel_2 = rangeOfSineValues*pwmPeriodConversion*0.05;
-  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,counter_on_channel_2);	//Adjusting x7_V as 0V
+  	  						  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2,				//Adjusting x7_V as 0V
+  	  								  rangeOfSineValues*pwmPeriodConversion*0.05);
   	  		  }
   	  		  break;
   	  	  }
@@ -919,49 +838,26 @@ void TIM4_IRQHandler(void)
 			  case 0:
 			  {
 				  operationMode = turnOff;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
 				  break;
 			  }
 			  case 1:
 			  {
 				  operationMode = start_threePhaseMode;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
 				  break;
 			  }
 			  case 2:
 			  {
 				  operationMode = start_DCMode;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
 				  break;
 			  }
 			  case 3:
 			  {
 				  operationMode = start_calibrateADC;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
 				  break;
 			  }
 			  case 8:
 			  {
 				  operationMode = start_control;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
-				  break;
-			  }
-			  default:
-			  {
-				  operationMode = turnOff;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
 				  break;
 			  }
 		  }
@@ -1046,6 +942,20 @@ void TIM5_IRQHandler(void)
   /* USER CODE BEGIN TIM5_IRQn 1 */
 
   /* USER CODE END TIM5_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USB On The Go FS global interrupt.
+  */
+void OTG_FS_IRQHandler(void)
+{
+  /* USER CODE BEGIN OTG_FS_IRQn 0 */
+
+  /* USER CODE END OTG_FS_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
+  /* USER CODE BEGIN OTG_FS_IRQn 1 */
+
+  /* USER CODE END OTG_FS_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
