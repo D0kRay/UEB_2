@@ -58,10 +58,12 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 
 				memcpy(Buffer + i + StatusFlags_OS, &StatusByte, sizeof(uint8_t));
 
+				/*
 				if(dt_set->val->Counter == dt_set->val->MaxPackages){
-					ST_push(dt_set->val->ID);
+					//ST_push(dt_set->val->ID);
 					list_remove(DT_list, dt_set);
 				}
+				*/
 
 				if(dt_set->val->Counter < dt_set->val->MaxPackages)
 					dt_set->val->Counter++;

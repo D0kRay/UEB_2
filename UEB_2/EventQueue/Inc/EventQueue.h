@@ -25,10 +25,6 @@
 typedef struct event{
 	uint8_t class;
 	uint8_t message;
-
-	void* ptr_data;
-	uint32_t size_data;
-
 }Event;
 
 typedef struct element{

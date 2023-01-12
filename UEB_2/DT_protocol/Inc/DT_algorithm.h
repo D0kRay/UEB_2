@@ -44,6 +44,39 @@
 
 #define DT_complete		0x80
 
+#define DT_PRE1			224
+#define DT_PRE2			225
+#define DT_PRE3			226
+#define DT_PRE4			227
+#define DT_PRE5			228
+#define DT_PRE6			229
+#define DT_PRE7			230
+#define DT_PRE8			231
+#define DT_PRE9			232
+#define DT_PRE10		233
+#define DT_PRE11		234
+#define DT_PRE12		235
+#define DT_PRE13		236
+#define DT_PRE14		237
+#define DT_PRE15		238
+#define DT_PRE16		239
+#define DT_PRE17		240
+#define DT_PRE18		241
+#define DT_PRE19		242
+#define DT_PRE20		243
+#define DT_PRE21		244
+#define DT_PRE22		245
+#define DT_PRE23		246
+#define DT_PRE24		247
+#define DT_PRE25		248
+#define DT_PRE26		249
+#define DT_PRE27		250
+#define DT_PRE28		251
+#define DT_PRE29		252
+#define DT_PRE30		253
+#define DT_PRE31		254
+#define DT_PRE32		255
+
 void DT_fillBuffer(list_t *DT_list, uint8_t *buf);
 
 
