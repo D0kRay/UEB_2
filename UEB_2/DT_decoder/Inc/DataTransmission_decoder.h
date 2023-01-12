@@ -10,10 +10,8 @@
 
 
 static const char DATATRANSMISSION[] = "DT";
-static const char DTCOMPLETE[] = "COMPLETE";
-//static const char DATATRANSMISSION[] = "DT";
-//static const char DATATRANSMISSION[] = "DT";
-//static const char DATATRANSMISSION[] = "DT";
+static const char COMPLETE[] = "COMPLETE";
+static const char INIT[] = "INIT";
 //static const char DATATRANSMISSION[] = "DT";
 //static const char DATATRANSMISSION[] = "DT";
 

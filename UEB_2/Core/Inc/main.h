@@ -58,7 +58,9 @@ typedef enum{
 	StatusInfoReceived = 1,
 	StatusCommandReceived = 2,
 	SetStatusReceived = 3,
-	DTTransmissionComplete = 4
+	DTTransmissionComplete = 4,
+	DTTransmissionInit = 5,
+	DTTransmissionNEW = 6
 }USB_Messages;
 
 /* USER CODE END EC */

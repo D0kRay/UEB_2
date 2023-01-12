@@ -11,6 +11,7 @@
 #include "DataTransmission_decoder.h"
 #include "Peripheral_decoder.h"
 #include "UEB_decoder.h"
+#include "USB_ID_stack.h"
 
 /*
  * float sind 4 Byte groß auf dem STM32
@@ -136,6 +137,8 @@ void createStatusEvent();
 void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage);
 void getMessage(EventQueue **queue);
 void getNewStatus(UEB_StatusType *uebstatus);
+uint8_t getUSB_ID();
+
 
 void provideStatus(UEB_StatusType *uebstatus);
 void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue);

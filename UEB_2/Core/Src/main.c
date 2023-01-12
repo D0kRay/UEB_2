@@ -396,6 +396,7 @@ int main(void)
     EventQueue* Q_USB 				= EventQueue_Init();
     EventQueue* Q_DataTransmission 	= EventQueue_Init();
     EventQueue* Q_Main 				= EventQueue_Init();
+    USB_ST_init();
     ST_init();
 
     uint8_t TestID;
@@ -512,6 +513,14 @@ int main(void)
 				  setEventClass(&evt,Interrupt);
 				  setEventMessage(&evt,GUIFeedbackComplete);
 				  addEvent(&Q_DataTransmission,&evt);
+
+			  case DTTransmissionInit:
+				  setEventClass(&evt,Interrupt);
+				  setEventMessage(&evt,GUIFeedbackComplete);
+				  addEvent(&Q_DataTransmission,&evt);
+
+			  case DTTransmissionNEW:
+				  break;
 
 			  default:
 				  break;

@@ -20,7 +20,10 @@ EventQueue* pMainEventQueue;
 EventQueue* pUSBEventQueue;
 EventQueue* pDataTransmissionEventQueue;
 
+uint8_t id;
 uint8_t receivebuffer[BUFFERSIZE];
+
+uint8_t id_array[255];
 
 
 
@@ -226,14 +229,16 @@ void decodeDataTransmissionMessage(char* message, EventQueue **queue)
 {
 	if(strstr(message, DATATRANSMISSION) != NULL) {
 			message = strstr(message, DELIMITER_PARTMESSAGE)+1;
-			if(strstr(message, DTCOMPLETE) != NULL){
+			if(strstr(message, COMPLETE) != NULL){
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if(strlen(message) == 2) {
+					id = (uint8_t)getFloatOfMessage(message);
+					USB_ST_push(id);
 					Event *evt = malloc (sizeof(Event));
 					setEventClass(evt,Interrupt);
 					setEventMessage(evt,DTTransmissionComplete);
 					evt->ptr_data = &message;
-					evt->size_data = sizeof(message);
+					evt->size_data = sizeof(uint8_t);
 					addEvent(queue, evt);
 //					createEvent(queue, Interrupt, DTTransmissionComplete);
 
@@ -243,46 +248,22 @@ void decodeDataTransmissionMessage(char* message, EventQueue **queue)
 				setEventClass(evt,Interrupt);
 				setEventMessage(evt,StatusCommandReceived);
 				addEvent(queue, evt);
-//
-//			} else if(strstr(message, PARAMETER) != NULL){
-//				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//				if(strstr(message, VCC) != NULL) {
-//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//					if (strstr(message, VALUE) != NULL) {
-//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//						pUEB_status->vccvoltage = getFloatOfMessage(message);
-//					}
-//
-//				} else if (strstr(message, VOUT) != NULL) {
-//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//					if (strstr(message, VALUE) != NULL) {
-//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//						pUEB_status->outvoltage = getFloatOfMessage(message);
-//					}
-//
-//				} else if (strstr(message, FREQUENCY) != NULL) {
-//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//					if (strstr(message, VALUE) != NULL) {
-//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//						pUEB_status->frequency = getFloatOfMessage(message);
-//					}
-//
-//				}else if (strstr(message, CURRENT) != NULL) {
-//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//					if (strstr(message, VALUE) != NULL) {
-//						message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//						pUEB_status->maxcurrent = getFloatOfMessage(message);
-//					}
-//
-//				}
-//
-//			} else if(strstr(message, SYSTEM) != NULL){
-//				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//				if(strstr(message, D_ENABLE) != NULL) {
-//					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-//					pUEB_status->status = getFloatOfMessage(message);
-//					createStatusEvent(queue);
-//				}
+
+			} else if(strstr(message, INIT) != NULL){
+				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
+				if(strlen(message) == 2) {
+					id = (uint8_t)getFloatOfMessage(message);
+					if(id > 223){
+						USB_ST_push(id);
+						Event *evt = malloc (sizeof(Event));
+						setEventClass(evt,Interrupt);
+						setEventMessage(evt,DTTransmissionInit);
+						evt->ptr_data = &message;
+						evt->size_data = sizeof(uint8_t);
+						addEvent(queue, evt);
+					}
+
+				}
 			}
 		} else {
 			TransmitBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
@@ -341,6 +322,11 @@ void getMessage(EventQueue **queue)
 void provideStatus(UEB_StatusType *uebstatus)
 {
 	pUEB_status = uebstatus;
+}
+
+uint8_t getUSB_ID()
+{
+	return id;
 }
 
 //void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue)
