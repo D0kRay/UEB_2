@@ -282,18 +282,18 @@ void ADC_Init (void)
 }
 
 
-void setParameters(UEB_StatusType *ueb_status)
+void setParameters(UEB_StatusType ueb_status)
 {
-	if(ueb_status->status == UEB_INIT_FINISH) {
-		frequency = ueb_status->frequency;				//enter frequency of the 3-phase sine (range of values: 0.1Hz to 200Hz)
-		v_bridge_uf = ueb_status->vccvoltage;			//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
-		voltage_ref = ueb_status->outvoltage;				//enter your preferred voltage for the amplitude of the sine (range of Values: 1V to 0.95*"v_bridge_uf")
-		rotationDirectionCW = ueb_status->rotationdirection;		//enter the direction of rotation, true -> clockwise; false -> counterclockwise
-		enableThirdHarmonic = ueb_status->thirdharmonic;	    //enter true, if you want to enable the third harmonic mode
-		enableSoftstarter = ueb_status->softstart;		//enter true, if you want the motor to start slowly
-		softstarterDuration = ueb_status->softstartduration;		//enter duration of the softstarter ramp in seconds
+	if(ueb_status.status == UEB_INIT_FINISH) {
+		frequency = ueb_status.frequency;				//enter frequency of the 3-phase sine (range of values: 0.1Hz to 200Hz)
+		v_bridge_uf = ueb_status.vccvoltage;			//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
+		voltage_ref = ueb_status.outvoltage;				//enter your preferred voltage for the amplitude of the sine (range of Values: 1V to 0.95*"v_bridge_uf")
+		rotationDirectionCW = ueb_status.rotationdirection;		//enter the direction of rotation, true -> clockwise; false -> counterclockwise
+		enableThirdHarmonic = ueb_status.thirdharmonic;	    //enter true, if you want to enable the third harmonic mode
+		enableSoftstarter = ueb_status.softstart;		//enter true, if you want the motor to start slowly
+		softstarterDuration = ueb_status.softstartduration;		//enter duration of the softstarter ramp in seconds
 	//	overCurrentThreshold = ueb_status->maxcurrent; 		//enter the allowed current in ampere (range of values: 0 to 10 Ampere)
-		numberOfAveragedValues = ueb_status->averagenum;    //enter by how many current values you want to calculate the average
+		numberOfAveragedValues = ueb_status.averagenum;    //enter by how many current values you want to calculate the average
 	//	pwmFrequency = ueb_status->pwmfrequency;
 	}
 }
@@ -380,18 +380,7 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 
   //Wechselberger Kirchhoff below
-  UEB_StatusType uebstatus = {
-		  .status = UEB_STOP,
-		  .vccvoltage = 10.45,
-		  .outvoltage = 1.545,
-		  .frequency = 1000.55,
-		  .rotationdirection = 0,
-		  .thirdharmonic = 0,
-		  .softstart = 1,
-		  .softstartduration = 5.5,
-		  .maxcurrent = 4.53,
-		  .averagenum = 24
-  };
+
 
 
   // Create EventQueues for priority run of the application
@@ -405,8 +394,7 @@ int main(void)
     uint8_t SineID = DT_PRE3;
 
   //UEB_MeasuresType uebmeasure;
-  provideStatus(&uebstatus);
-
+  Decoder_Init();
   Event *evt1 = malloc (sizeof(Event));
   setEventClass(evt1,Routine);
   setEventMessage(evt1,DataTransmissionComplete);
@@ -431,7 +419,7 @@ int main(void)
 			  switch (getEventMessage(evt)) {
 
 				case UEB_params_set:
-					setParameters(&uebstatus);
+					setParameters(getUEB_Status());
 					break;
 				/*
 				case value:
@@ -665,13 +653,8 @@ int main(void)
 		  setEventClass(evt,Interrupt);
 		  setEventMessage(evt,StatusInfoReceived);
 		  addEvent(&Q_USB, evt);
+		  free(evt);
 	  	  }
-	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET){
-		  Event *evt = malloc (sizeof(Event));
-		  setEventClass(evt,Interrupt);
-		  setEventMessage(evt,1);
-		  addEvent(&Q_DataTransmission, evt);
-	  }
 
 	  //ADC Abtastfunktionen
 	  /*

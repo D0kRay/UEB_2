@@ -133,15 +133,14 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 //static const char UEB_CONFIG_SAVED[] = "UEB_config_saved";
 
 //Functions
-void createStatusEvent();
-void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage);
+//void createStatusEvent();
+//void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage);
 void getMessage(EventQueue **queue);
 void getNewStatus(UEB_StatusType *uebstatus);
 uint8_t getUSB_ID();
+UEB_StatusType getUEB_Status();
 
 
-void provideStatus(UEB_StatusType *uebstatus);
-void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue);
-void setStatus();
+void Decoder_Init();
 
 #endif /* INC_INTERFACE_DECODER_H_ */

@@ -15,15 +15,28 @@
 char tokenizebuffer[BUFFERSIZE];
 char* token;
 
-UEB_StatusType* pUEB_status;
 EventQueue* pMainEventQueue;
 EventQueue* pUSBEventQueue;
 EventQueue* pDataTransmissionEventQueue;
+Event* evt;
 
 uint8_t id;
 uint8_t receivebuffer[BUFFERSIZE];
 
 uint8_t id_array[255];
+
+UEB_StatusType uebstatus = {
+		  .status = UEB_STOP,
+		  .vccvoltage = 10.45,
+		  .outvoltage = 1.545,
+		  .frequency = 1000.55,
+		  .rotationdirection = 0,
+		  .thirdharmonic = 0,
+		  .softstart = 1,
+		  .softstartduration = 5.5,
+		  .maxcurrent = 4.53,
+		  .averagenum = 24
+  };
 
 
 
@@ -47,6 +60,11 @@ uint16_t getDecimalOfFloat(float f)
 	float temp = (f - integerPart) * 100;
 	return (uint16_t)temp;
 }
+
+UEB_StatusType getUEB_Status()
+{
+	return uebstatus;
+}
 //TODO mit strstr stelle des nächsten strichpunkt suchen und message bis dahin abschneiden
 void decodeUEBMessage(char* message, EventQueue **queue)
 {
@@ -56,12 +74,12 @@ void decodeUEBMessage(char* message, EventQueue **queue)
 			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, D_ENABLE) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-				pUEB_status->softstart = getFloatOfMessage(message);
+				uebstatus.softstart = getFloatOfMessage(message);
 			} else if (strstr(message, DURATION) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
 					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-					pUEB_status->softstartduration = getFloatOfMessage(message);
+					uebstatus.softstartduration = getFloatOfMessage(message);
 				}
 
 			}
@@ -69,10 +87,10 @@ void decodeUEBMessage(char* message, EventQueue **queue)
 			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, TRDHARMONIC) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-				pUEB_status->thirdharmonic = getFloatOfMessage(message);
+				uebstatus.thirdharmonic = getFloatOfMessage(message);
 			} else if (strstr(message, ROTATION) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-				pUEB_status->rotationdirection = getFloatOfMessage(message);
+				uebstatus.rotationdirection = getFloatOfMessage(message);
 			}
 
 		} else if(strstr(message, PARAMETER) != NULL){
@@ -81,28 +99,28 @@ void decodeUEBMessage(char* message, EventQueue **queue)
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
 					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-					pUEB_status->vccvoltage = getFloatOfMessage(message);
+					uebstatus.vccvoltage = getFloatOfMessage(message);
 				}
 
 			} else if (strstr(message, VOUT) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
 					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-					pUEB_status->outvoltage = getFloatOfMessage(message);
+					uebstatus.outvoltage = getFloatOfMessage(message);
 				}
 
 			} else if (strstr(message, FREQUENCY) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
 					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-					pUEB_status->frequency = getFloatOfMessage(message);
+					uebstatus.frequency = getFloatOfMessage(message);
 				}
 
 			}else if (strstr(message, CURRENT) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 				if (strstr(message, VALUE) != NULL) {
 					message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-					pUEB_status->maxcurrent = getFloatOfMessage(message);
+					uebstatus.maxcurrent = getFloatOfMessage(message);
 				}
 
 			}
@@ -111,9 +129,10 @@ void decodeUEBMessage(char* message, EventQueue **queue)
 			message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, D_ENABLE) != NULL) {
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-				pUEB_status->status = getFloatOfMessage(message);
-				createStatusEvent(queue);
-			}
+				uebstatus.status = getFloatOfMessage(message);
+				setEventClass(evt,Interrupt);
+				setEventMessage(evt,3);
+				addEvent(queue, evt);			}
 		}
 	} else {
 		TransmitBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));
@@ -234,29 +253,31 @@ void decodeDataTransmissionMessage(char* message, EventQueue **queue)
 				if(strlen(message) == 2) {
 					id = (uint8_t)getFloatOfMessage(message);
 					USB_ST_push(id);
-					Event *evt = malloc (sizeof(Event));
 					setEventClass(evt,Interrupt);
 					setEventMessage(evt,DTTransmissionComplete);
 					addEvent(queue, evt);
+//					free(evt);
 //					createEvent(queue, Interrupt, DTTransmissionComplete);
 
 				}
 			} else if(strstr(message, CONFIGURATION) != NULL){
-				Event *evt = malloc (sizeof(Event));
 				setEventClass(evt,Interrupt);
 				setEventMessage(evt,StatusCommandReceived);
 				addEvent(queue, evt);
+//				free(evt);
+
 
 			} else if(strstr(message, INIT) != NULL){
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-				if(strlen(message) == 2) {
-					id = (uint8_t)getFloatOfMessage(message);
+				id = (uint8_t)getFloatOfMessage(message);
+				if(id > 0) {
 					if(id > 223){
 						USB_ST_push(id);
-						Event *evt = malloc (sizeof(Event));
 						setEventClass(evt,Interrupt);
 						setEventMessage(evt,DTTransmissionInit);
 						addEvent(queue, evt);
+//						free(evt);
+
 					}
 
 				}
@@ -273,12 +294,12 @@ void transmit_info()
 	memset(string, '\0', 1024);
 
 	snprintf((char*)string, 1024, "%s= %d;%s= %d.%d;%s= %d.%d;%s= %d.%d;%s= %d;%s= %d;%s= %d;%s= %d.%d;%s= %d.%d\r",
-			STAT, pUEB_status->status, VCC, getIntergerOfFloat(pUEB_status->vccvoltage), getDecimalOfFloat(pUEB_status->vccvoltage),
-			VOUT, getIntergerOfFloat(pUEB_status->outvoltage), getDecimalOfFloat(pUEB_status->outvoltage),
-			FREQUENCY, getIntergerOfFloat(pUEB_status->frequency), getDecimalOfFloat(pUEB_status->frequency),
-			ROTATION, pUEB_status->rotationdirection, TRDHARMONIC, pUEB_status->thirdharmonic, SOFTSTART, pUEB_status->softstart,
-			DURATION, getIntergerOfFloat(pUEB_status->softstartduration), getDecimalOfFloat(pUEB_status->softstartduration),
-			CURRENT, getIntergerOfFloat(pUEB_status->maxcurrent), getDecimalOfFloat(pUEB_status->maxcurrent));
+			STAT, uebstatus.status, VCC, getIntergerOfFloat(uebstatus.vccvoltage), getDecimalOfFloat(uebstatus.vccvoltage),
+			VOUT, getIntergerOfFloat(uebstatus.outvoltage), getDecimalOfFloat(uebstatus.outvoltage),
+			FREQUENCY, getIntergerOfFloat(uebstatus.frequency), getDecimalOfFloat(uebstatus.frequency),
+			ROTATION, uebstatus.rotationdirection, TRDHARMONIC, uebstatus.thirdharmonic, SOFTSTART, uebstatus.softstart,
+			DURATION, getIntergerOfFloat(uebstatus.softstartduration), getDecimalOfFloat(uebstatus.softstartduration),
+			CURRENT, getIntergerOfFloat(uebstatus.maxcurrent), getDecimalOfFloat(uebstatus.maxcurrent));
 	TransmitBuffer(string, strlen((char*)string));
 	free(string);
 }
@@ -315,9 +336,9 @@ void getMessage(EventQueue **queue)
 	}
 }
 
-void provideStatus(UEB_StatusType *uebstatus)
+void Decoder_Init()
 {
-	pUEB_status = uebstatus;
+	evt = malloc (sizeof(Event));
 }
 
 uint8_t getUSB_ID()
@@ -332,20 +353,24 @@ uint8_t getUSB_ID()
 //	pDataTransmissionEventQueue = datatransmission_queue;
 //}
 
-void createStatusEvent(EventQueue **queue)
-{
-	Event *evt = malloc (sizeof(Event));
-	setEventClass(evt,Interrupt);
-	setEventMessage(evt,3);
-	addEvent(queue, evt);
-}
+//void createStatusEvent(EventQueue **queue)
+//{
+//	Event *evt = malloc (sizeof(Event));
+//	setEventClass(evt,Interrupt);
+//	setEventMessage(evt,3);
+//	addEvent(queue, evt);
+//	free(evt);
+//
+//}
 
-void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage)
-{
-	Event *evt = malloc (sizeof(Event));
-	setEventClass(evt,class);
-	setEventMessage(evt,eventMessage);
-	addEvent(queue, evt);
-}
+//void createEvent(EventQueue **queue, EVTClass class, USB_Messages eventMessage)
+//{
+//	Event *evt = malloc (sizeof(Event));
+//	setEventClass(evt,class);
+//	setEventMessage(evt,eventMessage);
+//	addEvent(queue, evt);
+//	free(evt);
+//
+//}
 
 
