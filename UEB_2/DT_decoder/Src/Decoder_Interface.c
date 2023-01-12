@@ -256,8 +256,6 @@ void decodeDataTransmissionMessage(char* message, EventQueue **queue)
 						Event *evt = malloc (sizeof(Event));
 						setEventClass(evt,Interrupt);
 						setEventMessage(evt,DTTransmissionInit);
-						evt->ptr_data = &message;
-						evt->size_data = sizeof(uint8_t);
 						addEvent(queue, evt);
 					}
 
