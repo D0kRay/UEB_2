@@ -76,7 +76,6 @@ DT_status DT_Close(uint8_t ID){
 	if(var == NULL)
 			return (DT_status)1000;
 
-	ST_push(var->val->ID);
 	list_remove(DT_list, var);
 
 	return status;
