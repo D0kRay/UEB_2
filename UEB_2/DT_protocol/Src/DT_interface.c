@@ -9,12 +9,12 @@
 
 list_t *DT_list;
 
-DT_status DT_Init(uint8_t *ID, void* address, uint32_t size){
+DT_status DT_Init(uint8_t ID, void* address, uint32_t size){
 
 	DT_status status = 0;
 
 	if(DT_list == NULL)
-		DT_list = list_new();	//No initialization
+		DT_list = list_new();		//No initialization
 	if(DT_list == NULL)
 		return (DT_status)1100;		// NULL pointer after allocation
 
@@ -25,11 +25,13 @@ DT_status DT_Init(uint8_t *ID, void* address, uint32_t size){
 	if(newDataset == NULL)
 		return (DT_status)1200;		// NULL pointer after allocation
 
+	/*
 	uint8_t tmpID = ST_pop();		// Too many Data sets
 	if(tmpID == 0)
 		return (DT_status)1100;
+		*/
 
-	newDataset->ID = tmpID;
+	newDataset->ID = ID;
 	newDataset->Counter = 0;
 	newDataset->Address = address;
 	newDataset->Size = size;
@@ -43,7 +45,7 @@ DT_status DT_Init(uint8_t *ID, void* address, uint32_t size){
 
 	list_rpush(DT_list, newNode);
 
-	*ID = tmpID;
+	//*ID = tmpID;
 
 	return status;
 }
@@ -53,11 +55,29 @@ DT_status DT_Start(uint8_t ID){
 	DT_status status = 0;
 
 	if(DT_list == NULL)
+		return (DT_status)1000;
+	list_node_t* var = list_find(DT_list,ID);
+	if(var == NULL)
+		return (DT_status)1000;
+
+	var->val->F_SendData = F_ON;
+	var->val->Counter = 0;
+
+	return status;
+}
+
+DT_status DT_Close(uint8_t ID){
+
+	DT_status status = 0;
+
+	if(DT_list == NULL)
 			return (DT_status)1000;
 	list_node_t* var = list_find(DT_list,ID);
 	if(var == NULL)
 			return (DT_status)1000;
-	var->val->F_SendData = F_ON;
+
+	ST_push(var->val->ID);
+	list_remove(DT_list, var);
 
 	return status;
 }

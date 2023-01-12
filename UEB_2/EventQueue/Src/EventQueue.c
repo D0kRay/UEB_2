@@ -72,8 +72,6 @@ uint8_t isEventQueued(EventQueue *queue){
 void EventInit(Event *evt){
 	evt->class = 0;
 	evt->message = 0;
-	evt->ptr_data = NULL;
-	evt->size_data = 0;
 }
 
 uint8_t getEventClass(Event evt){

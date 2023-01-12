@@ -10,6 +10,10 @@
 
 #include "stdlib.h"
 
+#define DT_ID_PRE		32
+#define DT_ID_NEW		224
+#define DT_ID_TOTAL		255
+
 typedef enum{
 	F_ON = 1,
 	F_OFF = 0
