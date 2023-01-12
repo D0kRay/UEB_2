@@ -576,26 +576,18 @@ int main(void)
 
 			  case GUIInitDataset_PRE:
 				  ID = DT_PRE1;
-				  if(ID > DT_ID_NEW - 1){
+				  switch (ID){
 
-					  switch (ID){
+				  case DT_PRE1:
 
-					  case DT_PRE1:
+					  status = DT_Init(ID, UEB_Data, sizeof(UEB_Data));
 
-						  status = DT_Init(ID, UEB_Data, sizeof(UEB_Data));
+					  //TODO: Fill UEB_Data ARRAY -> double UEB_Data[1024];
+					  //setData(UEB_Data)
 
-						  //TODO: Fill UEB_Data ARRAY -> double UEB_Data[1024];
-						  //setData(UEB_Data)
+					  DT_Start(ID);
 
-						  DT_Start(ID);
-
-						  break;
-
-					  }
-
-				  }else{
-
-
+					  break;
 
 				  }
 
