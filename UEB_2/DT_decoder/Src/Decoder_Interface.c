@@ -342,7 +342,7 @@ void Decoder_Init()
 
 uint8_t getUSB_ID()
 {
-	return id;
+	return USB_ST_pop();
 }
 
 //void provideEventQueues(EventQueue *main_queue, EventQueue *usb_queue, EventQueue *datatransmission_queue)
