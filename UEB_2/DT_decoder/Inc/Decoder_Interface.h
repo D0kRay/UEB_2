@@ -138,7 +138,7 @@ static const char DELIMITER_PARTMESSAGE[] = ":";
 void getMessage(EventQueue **queue);
 void getNewStatus(UEB_StatusType *uebstatus);
 uint8_t getUSB_ID();
-UEB_StatusType getUEB_Status();
+UEB_StatusType getUEBStatus();
 
 
 void Decoder_Init();

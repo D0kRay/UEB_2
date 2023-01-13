@@ -38,7 +38,10 @@ UEB_StatusType uebstatus = {
 		  .averagenum = 24
   };
 
-
+UEB_StatusType getUEBStatus()
+{
+	return uebstatus;
+}
 
 float getFloatOfMessage(char *message)
 {
@@ -61,10 +64,6 @@ uint16_t getDecimalOfFloat(float f)
 	return (uint16_t)temp;
 }
 
-UEB_StatusType getUEB_Status()
-{
-	return uebstatus;
-}
 //TODO mit strstr stelle des nächsten strichpunkt suchen und message bis dahin abschneiden
 void decodeUEBMessage(char* message, EventQueue **queue)
 {
