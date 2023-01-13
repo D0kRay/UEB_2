@@ -165,6 +165,11 @@ void Error_Handler(void);
 #define RECIVER1_GPIO_Port GPIOG
 /* USER CODE BEGIN Private defines */
 
+#define UEB_CURRBUF_SIZE	400
+#define UEB_CURRBUF_OS1		0
+#define UEB_CURRBUF_OS2		400
+#define UEB_CURRBUF_OS3		800
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
