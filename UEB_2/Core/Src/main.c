@@ -322,6 +322,8 @@ int main(void)
   void* UEB_Current2 = malloc(sizeof(buffer)/3);	//Use buffer 2 for data
   void* UEB_Current3 = malloc(sizeof(buffer)/3);	//Use buffer 3 for data
 
+  void* DATA_COLLECTION = malloc(1024 * sizeof(uint32_t));
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -605,6 +607,29 @@ int main(void)
 					  status = DT_Init(ID, DT_SineString, sizeof(DT_SineString));
 					  if(DT_isError(status))
 						 break;
+
+					  DT_Start(ID);
+
+					  break;
+
+				  case DT_PRE6:
+
+					  status = DT_Init(ID, DATA_COLLECTION, 1024 * sizeof(uint32_t));
+					  if(DT_isError(status))
+						 break;
+
+					  /*
+					   * 	USER Defined Code to get Data into
+					   */
+
+					  memset(DATA_COLLECTION, 0, 1024 * sizeof(uint32_t));
+
+
+
+					  /*
+					   * 	USER Defined Code to get Data into - END
+					   */
+
 
 					  DT_Start(ID);
 

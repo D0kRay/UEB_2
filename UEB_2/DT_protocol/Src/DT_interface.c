@@ -8,6 +8,7 @@
 #include "DT_interface.h"
 
 list_t *DT_list;
+list_node_t *DT_node;
 
 DT_status DT_Init(uint8_t ID, void* address, uint32_t size){
 
@@ -86,8 +87,10 @@ DT_status DT_TransmitData(void *Buffer){
 
 	if(DT_list == NULL)
 		return (DT_status)1000;
+	if(DT_node == NULL)
+		DT_node = DT_list->head;
 
-	DT_fillBuffer(DT_list, Buffer);
+	DT_node = DT_fillBuffer(DT_list, DT_node, Buffer);
 
 	return status;
 

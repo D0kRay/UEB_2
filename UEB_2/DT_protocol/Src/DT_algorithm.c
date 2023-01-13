@@ -7,10 +7,10 @@
 
 #include "DT_algorithm.h"
 
-void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
+list_node_t* DT_fillBuffer(list_t *DT_list, list_node_t *DT_node , uint8_t* buf){
 
 	if(DT_list == NULL)
-		return;
+		return NULL;
 
 	uint8_t* Buffer = malloc(DT_BUFFER_SIZE);
 
@@ -19,7 +19,60 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 	uint8_t StatusByte;
 	list_node_t *dt_set;
 
+	if(DT_node == NULL)
+		DT_node = DT_list->head;
+	dt_set = DT_node;
 
+	for(int i = DT_BUFFER_OS2; i < 1024; i += DT_PACKAGE_SIZE){ //TODO <=1024???
+		StatusByte = 0;
+		if(dt_set == NULL){
+			StatusByte &= DT_NO_DATA;
+			memcpy(&Buffer[i + StatusFlags_OS], &StatusByte, sizeof(uint8_t));
+		}else{
+			do{
+				if(dt_set->val->F_SendData == F_ON)
+					break;
+				else{
+					if(dt_set->next != NULL)
+						dt_set = dt_set->next;
+					else
+						dt_set = DT_list->head;
+				}
+			}while(dt_set != DT_node);
+
+			memcpy(Buffer + i + ID_OS, 			&dt_set->val->ID,			sizeof(uint8_t));
+			memcpy(Buffer + i + Count_OS, 		&dt_set->val->Counter,		sizeof(uint8_t));
+			memcpy(Buffer + i + MaxPackage_OS, 	&dt_set->val->MaxPackages,	sizeof(uint8_t));
+
+			void* temp = dt_set->val->Address + dt_set->val->Counter * DT_PACKAGE_DATA_SIZE;
+
+			if(dt_set->val->Counter == dt_set->val->MaxPackages){
+				memcpy(Buffer + i + Data_OS, 		temp, 		(dt_set->val->Size - (dt_set->val->MaxPackages) * DT_PACKAGE_DATA_SIZE));
+				StatusByte |= DT_TC;
+			}
+			else
+				memcpy(Buffer + i + Data_OS, 		temp, 		DT_PACKAGE_DATA_SIZE);
+
+			memcpy(Buffer + i + StatusFlags_OS, &StatusByte, sizeof(uint8_t));
+
+
+			if(dt_set->val->Counter == dt_set->val->MaxPackages){
+				//ST_push(dt_set->val->ID);
+				//list_remove(DT_list, dt_set);
+				dt_set->val->F_SendData = F_OFF;
+			}
+			if(dt_set->val->Counter < dt_set->val->MaxPackages)
+				dt_set->val->Counter++;
+			}
+		}
+	memcpy(buf, Buffer, DT_BUFFER_SIZE);
+	free(Buffer);
+	if(dt_set->next != NULL)
+		return dt_set->next;
+	else
+		return DT_list->head;
+
+	/*
 	int count = 0;
 	for(int i = DT_BUFFER_OS2; i < 1024; i += DT_PACKAGE_SIZE){ //TODO <=1024???
 		StatusByte = 0;
@@ -61,7 +114,7 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 
 				if(dt_set->val->Counter == dt_set->val->MaxPackages){
 					//ST_push(dt_set->val->ID);
-//					list_remove(DT_list, dt_set);
+					//list_remove(DT_list, dt_set);
 					dt_set->val->F_SendData = F_OFF;
 				}
 
@@ -73,7 +126,8 @@ void DT_fillBuffer(list_t *DT_list, uint8_t* buf){
 		}
 
 	}
-	memcpy(buf, Buffer, DT_BUFFER_SIZE);
-	free(Buffer);
-	return;
+	*/
+
 }
+
+

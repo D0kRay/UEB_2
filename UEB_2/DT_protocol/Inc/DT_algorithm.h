@@ -77,7 +77,7 @@
 #define DT_PRE31		254
 #define DT_PRE32		255
 
-void DT_fillBuffer(list_t *DT_list, uint8_t *buf);
+list_node_t* DT_fillBuffer(list_t *DT_list, list_node_t *DT_start_node , uint8_t* buf);
 
 
 #endif /* INC_DT_ALGORITHM_H_ */
