@@ -50,11 +50,11 @@ typedef enum{
 
 typedef enum{
 	DataTransmissionComplete = 0,
+	DT_Test1 = 1,
+	DT_Test2 = 2,
 	GUIInitDataset_NEW = 3,
 	GUIInitDataset_PRE = 4,
-	GUIFeedbackComplete = 5,
-	DT_Test1 = 1,
-	DT_Test2 = 2
+	GUIFeedbackComplete = 5
 }DT_Messages;
 
 typedef enum{
