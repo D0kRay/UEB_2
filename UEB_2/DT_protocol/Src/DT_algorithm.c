@@ -40,6 +40,9 @@ list_node_t* DT_fillBuffer(list_t *DT_list, list_node_t *DT_node , uint8_t* buf)
 				}
 			}while(dt_set != DT_node);
 
+			if(dt_set->val->F_SendData == F_OFF)
+				break;
+
 			memcpy(Buffer + i + ID_OS, 			&dt_set->val->ID,			sizeof(uint8_t));
 			memcpy(Buffer + i + Count_OS, 		&dt_set->val->Counter,		sizeof(uint8_t));
 			memcpy(Buffer + i + MaxPackage_OS, 	&dt_set->val->MaxPackages,	sizeof(uint8_t));
