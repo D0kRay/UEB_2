@@ -121,7 +121,7 @@ uint8_t 		error = no_Error;
 unsigned 		bufferFlag;
 unsigned 		seqFlag;
 uint32_t		convres;
-uint16_t     	buffer[100][7];	//into this buffer, the DMA writes the measured current values
+uint32_t     	buffer[100][7];	//into this buffer, the DMA writes the measured current values
 
 int				rotVelo = 0;	//rotation velocity of the motor in rpm
 int cntr;
