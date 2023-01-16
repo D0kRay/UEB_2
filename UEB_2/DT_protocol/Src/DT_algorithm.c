@@ -64,14 +64,16 @@ list_node_t* DT_fillBuffer(list_t *DT_list, list_node_t *DT_node , uint8_t* buf)
 			if(dt_set->val->Counter < dt_set->val->MaxPackages)
 				dt_set->val->Counter++;
 			}
+
+		if(dt_set->next != NULL)
+				dt_set = dt_set->next;
+			else
+				dt_set = DT_list->head;
 		}
 	memcpy(buf, Buffer, DT_BUFFER_SIZE);
 	free(Buffer);
-	if(dt_set->next != NULL)
-		return dt_set->next;
-	else
-		return DT_list->head;
 
+	return dt_set;
 	/*
 	int count = 0;
 	for(int i = DT_BUFFER_OS2; i < 1024; i += DT_PACKAGE_SIZE){ //TODO <=1024???
