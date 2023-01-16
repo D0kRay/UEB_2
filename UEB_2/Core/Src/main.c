@@ -73,12 +73,12 @@ TIM_HandleTypeDef htim5;
 
 
 float 			frequency = 120;				//enter frequency of the 3-phase sine (range of values: 0.1Hz to 200Hz)
-float 			v_bridge_uf = 11;			//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
+float 			v_bridge_uf = 12;				//enter the voltage that applies at "u_brueke_uf" (range of values: 10V to 60V)
 float 			voltage_ref = 6;				//enter your preferred voltage for the amplitude of the sine (range of Values: 1V to 0.95*"v_bridge_uf")
-bool 			rotationDirectionCW = false;		//enter the direction of rotation, true -> clockwise; false -> counterclockwise
+bool 			rotationDirectionCW = false;	//enter the direction of rotation, true -> clockwise; false -> counterclockwise
 bool 			enableThirdHarmonic = true;	    //enter true, if you want to enable the third harmonic mode
 bool 			enableSoftstarter = false;		//enter true, if you want the motor to start slowly
-float			softstarterDuration = 1;		//enter duration of the softstarter ramp in seconds
+float			softstarterDuration = 5;		//enter duration of the softstarter ramp in seconds
 const float		overCurrentThreshold = 10; 		//enter the allowed current in ampere (range of values: 0 to 10 Ampere)
 uint32_t		numberOfAveragedValues = 10;    //enter by how many current values you want to calculate the average
 
@@ -88,22 +88,21 @@ float			maxTensionRelationship = 0.85;  //the max "voltage_ref" = "v_bridge_uf" 
 
 
 float 			amperePerDigits = 0.0007575757; //(0.05mV/Digits)/(66mV/A)=0.0007575757A/Digit
-float 			bufferSum_IHB1 = 0;
-float 			bufferSum_IHB2 = 0;
-float 			bufferSum_IHB3 = 0;
-float 			bufferAverage_IHB1 = 0;
-float 			bufferAverage_IHB2 = 0;
-float 			bufferAverage_IHB3 = 0;
-float 			bufferCalibrated1 = -33900;
-float 			bufferCalibrated2 = -33900;
-float 			bufferCalibrated3 = -33900;
+float			bufferAverage[7] = {0, 0, 0, 0, 0, 0, 0};
+float			bufferCalibrated[7] = {-33900, -33900, -33900, -33900, -33900, -33900, -33900};
 float 			current_IHB1 = 0;
 float 			current_IHB2 = 0;
 float 			current_IHB3 = 0;
-
+float 			current_HB1H = 0;
+float 			current_HB2H = 0;
+float 			current_V_BRUECKE = 0;
+float 			current_I_BRUECKE = 0;
+bool			current_measured_inPeriod_1;
+bool			current_measured_inPeriod_2;
+bool			current_measured_inPeriod_3;
 uint32_t 		WDHTR = 0;
 
-const float 	pwmFrequency = 20000; 			//enter PWM-Frequency for the sine modulation
+const float 	pwmFrequency = 20000;	//enter PWM-Frequency for the sine modulation
 const uint32_t 	numberOfSineValues = 1800; 		//how many Values are entered in the "pulseWidth" Array
 const uint32_t 	rangeOfSineValues = 1800;  		//the highest value in the "pulseWidth" Array
 
@@ -112,6 +111,9 @@ uint32_t 		counterperiod_TIM2 =    clockFrequency/pwmFrequency-1;				        //1
 uint32_t		counterperiod_TIM3 = clockFrequency/pwmFrequency*10-1;
 uint32_t		counterperiod_TIM4 =  600000-1;
 float 			pwmPeriodConversion = ((clockFrequency/pwmFrequency)/2)/rangeOfSineValues;//((120MHz/20kHz)/2)/1800 = 1.6666666666
+uint32_t		counter_on_channel_1 = 0;				//counter value for PWM on time for channel 1
+uint32_t		counter_on_channel_2 = 0;				//counter value for PWM on time for channel 2
+uint32_t		counter_on_channel_3 = 0;				//counter value for PWM on time for channel 3
 
 uint8_t 		error = no_Error;
 
@@ -119,10 +121,11 @@ uint8_t 		error = no_Error;
 unsigned 		bufferFlag;
 unsigned 		seqFlag;
 uint32_t		convres;
-uint32_t     	buffer[100][3];	//into this buffer, the DMA writes the measured current values
+uint16_t     	buffer[100][7];	//into this buffer, the DMA writes the measured current values
 
 int				rotVelo = 0;	//rotation velocity of the motor in rpm
-
+int cntr;
+int cntr2;
 //Wechselberger, Kirchhoff USB
 uint8_t			transmiton = 0;
 
@@ -140,7 +143,7 @@ static void MX_TIM5_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern void measure();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -227,7 +230,7 @@ void ADCDMA_Init (void)
  DMA1_Stream0->CR |= DMA_SxCR_TCIE;									// transfer complete Interrupt enable
  DMAMUX1_Channel0->CCR = 0x00000009;								// Channel0 ADC1
  //DMA1_Stream0->NDTR = 3;											// DMA_BufferSize for every sequence
- DMA1_Stream0->NDTR = 300;	 										// DMA_BufferSize for full Buffer
+ DMA1_Stream0->NDTR = 700;	 										// DMA_BufferSize for full Buffer
  DMA1_Stream0->M0AR = (uint32_t)(&(buffer[0][0]));					// DMA_Memory0BaseAddr
  DMA1->LIFCR = DMA_LIFCR_CTCIF0;
  DMA1_Stream0->CR |= DMA_SxCR_EN; 									// Enable the DMA
@@ -240,11 +243,25 @@ void ADC_Init (void)
 	ADC1->CR &= ~ADC_CR_ADEN;
 	RCC->AHB4ENR |= RCC_AHB4ENR_GPIOAEN;							// enable clock for GPIO PA4 und PA6 ADC1 Channel 3 und 18
 	RCC->AHB4ENR |= RCC_AHB4ENR_GPIOCEN;							// enable clock for GPIO PC4 ADC1 Channel 4
+
+	RCC->AHB4ENR |= RCC_AHB4ENR_GPIOFEN;
+
 	RCC->AHB1ENR |= RCC_AHB1ENR_ADC12EN;              				// enable clock for ADC1
 	GPIOA->MODER |= 0x00003300;										// pin PA4 und PA6 analog Input
 	GPIOA->PUPDR &= 0xFFFF00FF;        								// pin PA4 und PA6 no pull-up, no pull-down
 	GPIOC->MODER |= 0x00000300;                       				// pin PC4 analog Input
 	GPIOC->PUPDR &= 0xFFFFF0FF;        								// pin PC4 no pull-up, no pull-down
+
+	GPIOA->MODER |= (3<<6);		//PA3
+	GPIOA->MODER |= (3<<14);	//PA7
+	GPIOC->MODER |= (3<<10);	//PC5
+	GPIOF->MODER |= (3<<24);	//PF12
+
+	GPIOA->PUPDR &= ~((1<<6) | (1<<7));		//PA3
+	GPIOA->PUPDR &= ~((1<<14) | (1<<15));	//PA7
+	GPIOC->PUPDR &= ~((1<<10) | (1<<11));	//PC5
+	GPIOF->PUPDR &= ~((1<<24) | (1<<25));	//PF12
+
 	ADC1->CFGR &= ~ADC_CFGR_RES;									// 00: 16 bit resolution
 	//ADC1->CFGR |= ADC_CFGR_DISCEN;								// 1: discontinuous regular mode
 	ADC1->CFGR &= ~ADC_CFGR_DISCEN;
@@ -254,7 +271,7 @@ void ADC_Init (void)
 	//ADC1->IER |= ADC_IER_EOSIE;									// Interrupt sequence is complete
 	ADC1->IER |= ADC_IER_AWD1IE;	 								// Watchdog 1 interrupt enable
 
-	WDHTR = overCurrentThreshold/amperePerDigits-bufferCalibrated1;
+	WDHTR = overCurrentThreshold/amperePerDigits-bufferCalibrated[0];
 
 	ADC1->HTR1 = WDHTR;	 											// Watchdog 1 high threshold
 	ADC1->CFGR |= ADC_CFGR_AWD1EN;									// Watchdog 1 enable
@@ -264,12 +281,29 @@ void ADC_Init (void)
 	//ADC1->CFGR |= ADC_CFGR_DMNGT_0;								// 01: DMA one shot
 	ADC1->CFGR |= ADC_CFGR_OVRMOD;									// 1: last conversation
 	ADC1->IER &= ~ADC_IER_OVRIE;									// overrun Interrupt disabled
-	ADC1->SMPR2 = 0x00004800;										// 100: 32 cycles sampling time 32 cicles for Channel 3 und 4
-	ADC1->SMPR2 |= 0x04000000;										// 100: 32 cycles sampling time 32 cicles for Channel 18
+
+	//ADC1->SMPR2 = 0x00004800;										// 100: 32 cycles sampling time 32 cicles for Channel 3 und 4
+	//ADC1->SMPR2 |= 0x04000000;										// 100: 32 cycles sampling time 32 cicles for Channel 18
+
+
+	ADC1->SMPR2 &= ~((7<<9) | (7<<12) | (7<<18) | (7<<21) | (7<<24));	//channel 3, 4, 6,7, 8
+	ADC1->SMPR1 &= ~((7<<15) | (7<<24));								//channel 15, 18
+
 	//ADC1->PCSEL = 0x00000010;
-	ADC1->PCSEL = 0x00040018;										// preselect Channel 4, 3, 18
+	//ADC1->PCSEL = 0x00040018;										// preselect Channel 4, 3, 18
+	ADC1->PCSEL = 0x481D8;
 	//ADC1->SQR1 = 0x00000100;
-	ADC1->SQR1 = 0x00483102;										// Channel sequence assign to Channel 4, 3, 18
+	//ADC1->SQR1 = 0x00483102;										// Channel sequence assign to Channel 4, 3, 18
+
+	ADC1->SQR1 |= (6<<20);
+	ADC1->SQR3 |= (3<<0);  // SEQ1 for Channel 1
+	ADC1->SQR3 |= (4<<5);  // SEQ2 for CHannel 4
+	ADC1->SQR3 |= (18<<10);  // SEQ3 for CHannel 18
+	ADC1->SQR3 |= (8<<15);  // SEQ4 for Channel 8
+	ADC1->SQR3 |= (15<<20);  // SEQ5 for CHannel 15
+	ADC1->SQR3 |= (6<<25);  // SEQ6 for CHannel 6
+	ADC1->SQR2 |= (7<<0);  // SEQ7 for CHannel 7
+
 	ADC12_COMMON->CCR &= ~ADC_CCR_PRESC;							// ADCLK not divided
 	ADC12_COMMON->CCR |= 0x002C0000;								// ADCLK Clock div 256
 	//ADC12_COMMON->CCR |= 0x00240000;								// ADCLK Clock div 64
@@ -317,10 +351,6 @@ int main(void)
 
   char DT_TestString[] = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit ame:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit ame";
   char DT_SineString[] = "2500,2508,2516,2524,2531,2539,2547,2555,2563,2571,2579,2586,2594,2602,2610,2618,2626,2633,2641,2649,2657,2665,2673,2680,2688,2696,2704,2712,2720,2727,2735,2743,2751,2759,2767,2774,2782,2790,2798,2806,2813,2821,2829,2837,2844,2852,2860,2868,2876,2883,2891,2899,2907,2914,2922,2930,2938,2945,2953,2961,2968,2976,2984,2992,2999,3007,3015,3022,3030,3038,3045,3053,3061,3068,3076,3084,3091,3099,3106,3114,3122,3129,3137,3145,3152,3160,3167,3175,3182,3190,3197,3205,3213,3220,3228,3235,3243,3250,3258,3265,3273,3280,3287,3295,3302,3310,3317,3325,3332,3339,3347,3354,3362,3369,3376,3384,3391,3398,3406,3413,3420,3428,3435,3442,3449,3457,3464,3471,3478,3486,3493,3500,3507,3514,3522,3529,3536,3543,3550,3557,3564,3572,3579,3586,3593,3600,3607,3614,3621,3628,3635,3642,3649,3656,3663,3670,3677,3684,3691,3697,3704,3711,3718,3725,3732,3739,3745,3752,3759,3766,3773,3779,3786,3793,3800,3806,3813,3820,3826,3833,3840,3846,3853,3859,3866,3873,3879,3886,3892,3899,3905,3912,3918,3925,3931,3938,3944,3950,3957,3963,3969,3976,3982,3988,3995,4001,4007,4014,4020,4026,4032,4038,4045,4051,4057,4063,4069,4075,4081,4088,4094,4100,4106,4112,4118,4124,4130,4136,4141,4147,4153,4159,4165,4171,4177,4183,4188,4194,4200,4206,4211,4217,4223,4228,4234,4240,4245,4251,4257,4262,4268,4273,4279,4284,4290,4295,4301,4306,4312,4317,4322,4328,4333,4338,4344,4349,4354,4360,4365,4370,4375,4380,4386,4391,4396,4401,4406,4411,4416,4421,4426,4431,4436,4441,4446,4451,4456,4461,4466,4471,4475,4480,4485,4490,4494,4499,4504,4509,4513,4518,4523,4527,4532,4536,4541,4545,4550,4554,4559,4563,4568,4572,4576,4581,4585,4590,4594,4598,4602,4607,4611,4615,4619,4623,4627,4632,4636,4640,4644,4648,4652,4656,4660,4664,4668,4672,4675,4679,4683,4687,4691,4695,4698,4702,4706,4709,4713,4717,4720,4724,4728,4731,4735,4738,4742,4745,4749,4752,4755,4759,4762,4765,4769,4772,4775,4779,4782,4785,4788,4791,4794,4797,4801,4804,4807,4810,4813,4816,4819,4822,4824,4827,4830,4833,4836,4839,4841,4844,4847,4850,4852,4855,4857,4860,4863,4865,4868,4870,4873,4875,4878,4880,4882,4885,4887,4889,4892,4894,4896,4899,4901,4903,4905,4907,4909,4911,4913,4915,4918,4919,4921,4923,4925,4927,4929,4931,4933,4935,4936,4938,4940,4941,4943,4945,4946,4948,4950,4951,4953,4954,4956,4957,4959,4960,4961,4963,4964,4965,4967,4968,4969,4970,4972,4973,4974,4975,4976,4977,4978,4979,4980,4981,4982,4983,4984,4985,4986,4987,4987,4988,4989,4990,4990,4991,4992,4992,4993,4993,4994,4995,4995,4996,4996,4996,4997,4997,4998,4998,4998,4999,4999,4999,4999,4999,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,4999,4999,4999,4999,4999,4998,4998,4998,4997,4997,4996,4996,4996,4995,4995,4994,4993,4993,4992,4992,4991,4990,4990,4989,4988,4987,4987,4986,4985,4984,4983,4982,4981,4980,4979,4978,4977,4976,4975,4974,4973,4972,4970,4969,4968,4967,4965,4964,4963,4961,4960,4959,4957,4956,4954,4953,4951,4950,4948,4946,4945,4943,4941,4940,4938,4936,4935,4933,4931,4929,4927,4925,4923,4921,4919,4918,4915,4913,4911,4909,4907,4905,4903,4901,4899,4896,4894,4892,4889,4887,4885,4882,4880,4878,4875,4873,4870,4868,4865,4863,4860,4857,4855,4852,4850,4847,4844,4841,4839,4836,4833,4830,4827,4824,4822,4819,4816,4813,4810,4807,4804,4801,4797,4794,4791,4788,4785,4782,4779,4775,4772,4769,4765,4762,4759,4755,4752,4749,4745,4742,4738,4735,4731,4728,4724,4720,4717,4713,4709,4706,4702,4698,4695,4691,4687,4683,4679,4675,4672,4668,4664,4660,4656,4652,4648,4644,4640,4636,4632,4627,4623,4619,4615,4611,4607,4602,4598,4594,4590,4585,4581,4576,4572,4568,4563,4559,4554,4550,4545,4541,4536,4532,4527,4523,4518,4513,4509,4504,4499,4494,4490,4485,4480,4475,4471,4466,4461,4456,4451,4446,4441,4436,4431,4426,4421,4416,4411,4406,4401,4396,4391,4386,4380,4375,4370,4365,4360,4354,4349,4344,4338,4333,4328,4322,4317,4312,4306,4301,4295,4290,4284,4279,4273,4268,4262,4257,4251,4245,4240,4234,4228,4223,4217,4211,4206,4200,4194,4188,4183,4177,4171,4165,4159,4153,4147,4141,4136,4130,4124,4118,4112,4106,4100,4094,4088,4081,4075,4069,4063,4057,4051,4045,4038,4032,4026,4020,4014,4007,4001,3995,3988,3982,3976,3969,3963,3957,3950,3944,3938,3931,3925,3918,3912,3905,3899,3892,3886,3879,3873,3866,3859,3853,3846,3840,3833,3826,3820,3813,3806,3800,3793,3786,3779,3773,3766,3759,3752,3745,3739,3732,3725,3718,3711,3704,3697,3691,3684,3677,3670,3663,3656,3649,3642,3635,3628,3621,3614,3607,3600,3593,3586,3579,3572,3564,3557,3550,3543,3536,3529,3522,3514,3507,3500,3493,3486,3478,3471,3464,3457,3449,3442,3435,3428,3420,3413,3406,3398,3391,3384,3376,3369,3362,3354,3347,3339,3332,3325,3317,3310,3302,3295,3287,3280,3273,3265,3258,3250,3243,3235,3228,3220,3213,3205,3197,3190,3182,3175,3167,3160,3152,3145,3137,3129,3122,3114,3106,3099,3091,3084,3076,3068,3061,3053,3045,3038,3030,3022,3015,3007,2999,2992,2984,2976,2968,2961,2953,2945,2938,2930,2922,2914,2907,2899,2891,2883,2876,2868,2860,2852,2844,2837,2829,2821,2813,2806,2798,2790,2782,2774,2767,2759,2751,2743,2735,2727,2720,2712,2704,2696,2688,2680,2673,2665,2657,2649,2641,2633,2626,2618,2610,2602,2594,2586,2579,2571,2563,2555,2547,2539,2531,2524,2516,2508,2500,2492,2484,2476,2469,2461,2453,2445,2437,2429,2421,2414,2406,2398,2390,2382,2374,2367,2359,2351,2343,2335,2327,2320,2312,2304,2296,2288,2280,2273,2265,2257,2249,2241,2233,2226,2218,2210,2202,2194,2187,2179,2171,2163,2156,2148,2140,2132,2124,2117,2109,2101,2093,2086,2078,2070,2062,2055,2047,2039,2032,2024,2016,2008,2001,1993,1985,1978,1970,1962,1955,1947,1939,1932,1924,1916,1909,1901,1894,1886,1878,1871,1863,1855,1848,1840,1833,1825,1818,1810,1803,1795,1787,1780,1772,1765,1757,1750,1742,1735,1727,1720,1713,1705,1698,1690,1683,1675,1668,1661,1653,1646,1638,1631,1624,1616,1609,1602,1594,1587,1580,1572,1565,1558,1551,1543,1536,1529,1522,1514,1507,1500,1493,1486,1478,1471,1464,1457,1450,1443,1436,1428,1421,1414,1407,1400,1393,1386,1379,1372,1365,1358,1351,1344,1337,1330,1323,1316,1309,1303,1296,1289,1282,1275,1268,1261,1255,1248,1241,1234,1227,1221,1214,1207,1200,1194,1187,1180,1174,1167,1160,1154,1147,1141,1134,1127,1121,1114,1108,1101,1095,1088,1082,1075,1069,1062,1056,1050,1043,1037,1031,1024,1018,1012,1005,999,993,986,980,974,968,962,955,949,943,937,931,925,919,912,906,900,894,888,882,876,870,864,859,853,847,841,835,829,823,817,812,806,800,794,789,783,777,772,766,760,755,749,743,738,732,727,721,716,710,705,699,694,688,683,678,672,667,662,656,651,646,640,635,630,625,620,614,609,604,599,594,589,584,579,574,569,564,559,554,549,544,539,534,529,525,520,515,510,506,501,496,491,487,482,477,473,468,464,459,455,450,446,441,437,432,428,424,419,415,410,406,402,398,393,389,385,381,377,373,368,364,360,356,352,348,344,340,336,332,328,325,321,317,313,309,305,302,298,294,291,287,283,280,276,272,269,265,262,258,255,251,248,245,241,238,235,231,228,225,221,218,215,212,209,206,203,199,196,193,190,187,184,181,178,176,173,170,167,164,161,159,156,153,150,148,145,143,140,137,135,132,130,127,125,122,120,118,115,113,111,108,106,104,101,99,97,95,93,91,89,87,85,82,81,79,77,75,73,71,69,67,65,64,62,60,59,57,55,54,52,50,49,47,46,44,43,41,40,39,37,36,35,33,32,31,30,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,13,12,11,10,10,9,8,8,7,7,6,5,5,4,4,4,3,3,2,2,2,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,2,2,2,3,3,4,4,4,5,5,6,7,7,8,8,9,10,10,11,12,13,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,30,31,32,33,35,36,37,39,40,41,43,44,46,47,49,50,52,54,55,57,59,60,62,64,65,67,69,71,73,75,77,79,81,82,85,87,89,91,93,95,97,99,101,104,106,108,111,113,115,118,120,122,125,127,130,132,135,137,140,143,145,148,150,153,156,159,161,164,167,170,173,176,178,181,184,187,190,193,196,199,203,206,209,212,215,218,221,225,228,231,235,238,241,245,248,251,255,258,262,265,269,272,276,280,283,287,291,294,298,302,305,309,313,317,321,325,328,332,336,340,344,348,352,356,360,364,368,373,377,381,385,389,393,398,402,406,410,415,419,424,428,432,437,441,446,450,455,459,464,468,473,477,482,487,491,496,501,506,510,515,520,525,529,534,539,544,549,554,559,564,569,574,579,584,589,594,599,604,609,614,620,625,630,635,640,646,651,656,662,667,672,678,683,688,694,699,705,710,716,721,727,732,738,743,749,755,760,766,772,777,783,789,794,800,806,812,817,823,829,835,841,847,853,859,864,870,876,882,888,894,900,906,912,919,925,931,937,943,949,955,962,968,974,980,986,993,999,1005,1012,1018,1024,1031,1037,1043,1050,1056,1062,1069,1075,1082,1088,1095,1101,1108,1114,1121,1127,1134,1141,1147,1154,1160,1167,1174,1180,1187,1194,1200,1207,1214,1221,1227,1234,1241,1248,1255,1261,1268,1275,1282,1289,1296,1303,1309,1316,1323,1330,1337,1344,1351,1358,1365,1372,1379,1386,1393,1400,1407,1414,1421,1428,1436,1443,1450,1457,1464,1471,1478,1486,1493,1500,1507,1514,1522,1529,1536,1543,1551,1558,1565,1572,1580,1587,1594,1602,1609,1616,1624,1631,1638,1646,1653,1661,1668,1675,1683,1690,1698,1705,1713,1720,1727,1735,1742,1750,1757,1765,1772,1780,1787,1795,1803,1810,1818,1825,1833,1840,1848,1855,1863,1871,1878,1886,1894,1901,1909,1916,1924,1932,1939,1947,1955,1962,1970,1978,1985,1993,2001,2008,2016,2024,2032,2039,2047,2055,2062,2070,2078,2086,2093,2101,2109,2117,2124,2132,2140,2148,2156,2163,2171,2179,2187,2194,2202,2210,2218,2226,2233,2241,2249,2257,2265,2273,2280,2288,2296,2304,2312,2320,2327,2335,2343,2351,2359,2367,2374,2382,2390,2398,2406,2414,2421,2429,2437,2445,2453,2461,2469,2476,2484,2492";
-
-  void* UEB_Current1 = malloc(sizeof(buffer)/3);	//Use buffer 1 for data
-  void* UEB_Current2 = malloc(sizeof(buffer)/3);	//Use buffer 2 for data
-  void* UEB_Current3 = malloc(sizeof(buffer)/3);	//Use buffer 3 for data
 
   void* DATA_COLLECTION = malloc(1024 * sizeof(uint32_t));
 
@@ -408,9 +438,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+	HAL_GPIO_WritePin(Test_pulse_GPIO_Port, Test_pulse_Pin, 1);
   while (1)
   {
+  	
+  	
 	  // Main Queue
 	  if(isEventQueued(Q_Main)){
 		  Event evt;
@@ -552,43 +584,26 @@ int main(void)
 
 				  case DT_PRE1:
 
-					  status = DT_Init(ID, UEB_Current1, UEB_CURRBUF_SIZE);
-					  if(DT_isError(status))
-						 break;
-
-					  //TODO: Fill UEB_Data ARRAY -> double UEB_Data[1024];
-					  //setData(UEB_Data)
-					  memcpy(UEB_Current1, buffer + UEB_CURRBUF_OS1, UEB_CURRBUF_SIZE);		//Copy content of the DMA buffer from the ADC1
-
-					  DT_Start(ID);
 
 					  break;
 
 				  case DT_PRE2:
 
-					  status = DT_Init(ID, UEB_Current2, UEB_CURRBUF_SIZE);
-					  if(DT_isError(status))
-						 break;
 
-					  //TODO: Fill UEB_Data ARRAY -> double UEB_Data[1024];
-					  //setData(UEB_Data)
-					  memcpy(UEB_Current2, buffer + UEB_CURRBUF_OS2, UEB_CURRBUF_SIZE);		//Copy content of the DMA buffer from the ADC1
-
-					  DT_Start(ID);
 
 					  break;
 
 				  case DT_PRE3:
 
-					  status = DT_Init(ID, UEB_Current3, UEB_CURRBUF_SIZE);
-					  if(DT_isError(status))
-						 break;
-
-					  //TODO: Fill UEB_Data ARRAY -> double UEB_Data[1024];
-					  //setData(UEB_Data)
-					  memcpy(UEB_Current3, buffer + UEB_CURRBUF_OS3, UEB_CURRBUF_SIZE);		//Copy content of the DMA buffer from the ADC1
-
-					  DT_Start(ID);
+//					  status = DT_Init(ID, UEB_Current3, UEB_CURRBUF_SIZE);
+//					  if(DT_isError(status))
+//						 break;
+//
+//					  //TODO: Fill UEB_Data ARRAY -> double UEB_Data[1024];
+//					  //setData(UEB_Data)
+//					  memcpy(UEB_Current3, buffer + UEB_CURRBUF_OS3, UEB_CURRBUF_SIZE);		//Copy content of the DMA buffer from the ADC1
+//
+//					  DT_Start(ID);
 
 					  break;
 
@@ -696,7 +711,33 @@ int main(void)
 		  setEventMessage(evt,StatusInfoReceived);
 		  addEvent(&Q_USB, evt);
 		  free(evt);
-	  	  }
+      }
+      
+    cntr = TIM2->CNT;
+      if(cntr>(counter_on_channel_1/2+(counterperiod_TIM2-counter_on_channel_1)/2))
+      {
+      measure(1);
+      measure(4);
+      measure(6);
+      measure(7);
+      current_measured_inPeriod_1 = true;
+      }
+
+      if(cntr>(counter_on_channel_2/2+(counterperiod_TIM2-counter_on_channel_2)/2))
+      {
+      measure(2);
+      measure(5);
+        current_measured_inPeriod_2 = true;
+      }
+
+      if(cntr>(counter_on_channel_3/2+(counterperiod_TIM2-counter_on_channel_3)/2))
+      {
+        measure(3);
+        current_measured_inPeriod_3 = true;
+      }
+
+      measure(4);
+    
 
 	  //ADC Abtastfunktionen
 	  /*
