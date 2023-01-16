@@ -427,7 +427,6 @@ int main(void)
 	//ST_init();		//Stack not used
 
   //UEB_MeasuresType uebmeasure;
-	DT_Interface_Init();
   Decoder_Init();
   Event *evt1 = malloc (sizeof(Event));
   setEventClass(evt1,Routine);
