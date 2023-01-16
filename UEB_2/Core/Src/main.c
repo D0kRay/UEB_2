@@ -427,6 +427,7 @@ int main(void)
 	//ST_init();		//Stack not used
 
   //UEB_MeasuresType uebmeasure;
+	DT_Interface_Init();
   Decoder_Init();
   Event *evt1 = malloc (sizeof(Event));
   setEventClass(evt1,Routine);
@@ -713,30 +714,30 @@ int main(void)
 		  free(evt);
       }
       
-    cntr = TIM2->CNT;
-      if(cntr>(counter_on_channel_1/2+(counterperiod_TIM2-counter_on_channel_1)/2))
-      {
-      measure(1);
-      measure(4);
-      measure(6);
-      measure(7);
-      current_measured_inPeriod_1 = true;
-      }
-
-      if(cntr>(counter_on_channel_2/2+(counterperiod_TIM2-counter_on_channel_2)/2))
-      {
-      measure(2);
-      measure(5);
-        current_measured_inPeriod_2 = true;
-      }
-
-      if(cntr>(counter_on_channel_3/2+(counterperiod_TIM2-counter_on_channel_3)/2))
-      {
-        measure(3);
-        current_measured_inPeriod_3 = true;
-      }
-
-      measure(4);
+//    cntr = TIM2->CNT;
+//      if(cntr>(counter_on_channel_1/2+(counterperiod_TIM2-counter_on_channel_1)/2))
+//      {
+//      measure(1);
+//      measure(4);
+//      measure(6);
+//      measure(7);
+//      current_measured_inPeriod_1 = true;
+//      }
+//
+//      if(cntr>(counter_on_channel_2/2+(counterperiod_TIM2-counter_on_channel_2)/2))
+//      {
+//      measure(2);
+//      measure(5);
+//        current_measured_inPeriod_2 = true;
+//      }
+//
+//      if(cntr>(counter_on_channel_3/2+(counterperiod_TIM2-counter_on_channel_3)/2))
+//      {
+//        measure(3);
+//        current_measured_inPeriod_3 = true;
+//      }
+//
+//      measure(4);
     
 
 	  //ADC Abtastfunktionen
