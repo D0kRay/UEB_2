@@ -8,7 +8,7 @@
 #include "DT_interface.h"
 
 list_t *DT_list;
-list_node_t *DT_node;
+list_node_t *DT_node = NULL;
 
 DT_status DT_Init(uint8_t ID, void* address, uint32_t size){
 
