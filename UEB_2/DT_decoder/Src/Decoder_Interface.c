@@ -249,16 +249,16 @@ void decodeDataTransmissionMessage(char* message, EventQueue **queue)
 			message = strstr(message, DELIMITER_PARTMESSAGE)+1;
 			if(strstr(message, COMPLETE) != NULL){
 				message = strstr(message,  DELIMITER_PARTMESSAGE)+1;
-				if(strlen(message) == 2) {
-					id = (uint8_t)getFloatOfMessage(message);
-					USB_ST_push(id);
-					setEventClass(evt,Interrupt);
-					setEventMessage(evt,DTTransmissionComplete);
-					addEvent(queue, evt);
+
+				id = (uint8_t)getFloatOfMessage(message);
+				USB_ST_push(id);
+				setEventClass(evt,Interrupt);
+				setEventMessage(evt,DTTransmissionComplete);
+				addEvent(queue, evt);
 //					free(evt);
 //					createEvent(queue, Interrupt, DTTransmissionComplete);
 
-				}
+
 			} else if(strstr(message, CONFIGURATION) != NULL){
 				setEventClass(evt,Interrupt);
 				setEventMessage(evt,StatusCommandReceived);
