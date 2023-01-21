@@ -206,8 +206,10 @@ float 						phaseShift = 2*pi/3;
 extern unsigned 			bufferFlag;
 extern unsigned char		seqFlag;
 extern uint32_t				convres;
-extern uint32_t     		buffer[1000][3];
+extern uint32_t     		buffer[7];
 extern uint32_t				numberOfAveragedValues;
+extern uint32_t				bufferHistory[7][1000];
+int 						actualBufferHistoryPosition = 0;
 extern float 				overCurrentThreshold;
 extern float 				amperePerDigits;
 extern float				bufferAverage[7];
@@ -311,79 +313,45 @@ float VR(float la, float d, float tSamp)	//function for the amplification of the
   */
 void measure(int channel)
 {
-	long sum = 0;
 	  //With turning on the pin PE4 at this point, you can check with the oscilloscope at which time TIM2 starts.
 	  //At the end of TIM2 the Pin gets turned off, so you can see how much time the calculation of TIM2 took.
 	//HAL_GPIO_WritePin(Test_pulse_GPIO_Port, Test_pulse_Pin, 1);
-
+	float conversionFactor = 0;
 	switch (channel) {
 	case 1:
 		  //calculating the average of the current measured in the three phases
-		  for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][0];
-		  }
-		  bufferAverage[0] = sum/numberOfAveragedValues;
 		  current_IHB1 = (bufferCalibrated[0]+bufferAverage[0])*amperePerDigits;
 		  break;
 	case 2:
 		  //calculating the average of the current measured in the three phases
-		  for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][1];
-		  }
-		  bufferAverage[1] = sum/numberOfAveragedValues;
 		  current_IHB2 = (bufferCalibrated[1]+bufferAverage[1])*amperePerDigits;
 		  break;
 	case 3:
 		  //calculating the average of the current measured in the three phases
-		  for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][2];
-		  }
-		  bufferAverage[2] = sum/numberOfAveragedValues;
 		  current_IHB3 = (bufferCalibrated[2]+bufferAverage[2])*amperePerDigits;
 		  break;
 	case 4:
 		  //calculating the average of the measured mosfet signal
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][3];
-		  }
-		bufferAverage[3] = sum/numberOfAveragedValues;
-		current_HB1H = bufferAverage[3]+bufferCalibrated[3];
+		current_HB1H = ((bufferAverage[3]+bufferCalibrated[3])/4096)*current_V_BRUECKE;
 		  break;
 	case 5:
+		conversionFactor = 59.4/4096/1000;
 		  //calculating the average of the measured mosfet signal
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][4];
-		  }
-		bufferAverage[4] = sum/numberOfAveragedValues;
-		current_HB2H = bufferAverage[4]+bufferCalibrated[4];
+		current_HB2H = ((bufferAverage[4]+bufferCalibrated[4])/4096)*current_V_BRUECKE;
 		  break;
 	case 6:
+		conversionFactor = 59.4/4096/1000;
 		  //calculating the average of the source voltage
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][5];
-		  }
-		bufferAverage[5] = sum/numberOfAveragedValues;
-		current_V_BRUECKE = bufferAverage[5]+bufferCalibrated[5];
+		current_V_BRUECKE = (bufferAverage[5]+bufferCalibrated[5])*conversionFactor;
 		  break;
 	case 7:
+		 conversionFactor = 66/4096/1.65;
 		  //calculating the average of the current taken from source
-		for(int counter=0; counter<numberOfAveragedValues; counter++)
-		  {
-			  sum += buffer[counter][6];
-		  }
-		bufferAverage[6] = sum/numberOfAveragedValues;
-		current_I_BRUECKE = bufferAverage[6]+bufferCalibrated[6];
+		current_I_BRUECKE = (bufferAverage[6]+bufferCalibrated[6])*conversionFactor - 20;
 		  break;
 	default:
 		break;
 	}
-
 }
 
 /* USER CODE END 0 */
@@ -1094,8 +1062,26 @@ void OTG_FS_IRQHandler(void)
 
 void DMA1_Stream0_IRQHandler (void)									// DMA RX
  {
+	// Store buffer values in history
+	for(int i = 0;i<=6;i++){
+		bufferHistory[i][actualBufferHistoryPosition] = buffer[i];
+	}
+	actualBufferHistoryPosition++;
+	if(	actualBufferHistoryPosition > (numberOfAveragedValues - 1)) {
+		actualBufferHistoryPosition = 0;
+	}
+
+	// Calculate average
+	for(int i = 0;i<=6;i++){
+		uint32_t sum = 0;
+		for(int j = 0; j<numberOfAveragedValues;j++) {
+			sum = sum +	bufferHistory[i][j];
+		}
+		bufferAverage[i] = sum/numberOfAveragedValues;
+	}
+
  DMA1->LIFCR = DMA_LIFCR_CTCIF0;									// clear DMA stream complete interrupt
- DMA1_Stream0->M0AR = (uint32_t)(&(buffer[0][0]));					// this when NDTR = 300 (buffer 100 * sequences 3)
+ DMA1_Stream0->M0AR = (uint32_t)(&(buffer[0]));					// this when NDTR = 300 (buffer 100 * sequences 3)
  DMA1_Stream0->CR |= DMA_SxCR_EN;
  }
 

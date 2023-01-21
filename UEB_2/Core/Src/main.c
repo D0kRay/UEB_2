@@ -89,6 +89,7 @@ float			maxTensionRelationship = 0.85;  //the max "voltage_ref" = "v_bridge_uf" 
 
 float 			amperePerDigits = 0.0007575757; //(0.05mV/Digits)/(66mV/A)=0.0007575757A/Digit
 float			bufferAverage[7] = {0, 0, 0, 0, 0, 0, 0};
+uint32_t 		bufferHistory[7][1000];
 float			bufferCalibrated[7] = {-33900, -33900, -33900, -33900, -33900, -33900, -33900};
 float 			current_IHB1 = 0;
 float 			current_IHB2 = 0;
@@ -121,7 +122,7 @@ uint8_t 		error = no_Error;
 unsigned 		bufferFlag;
 unsigned 		seqFlag;
 uint32_t		convres;
-uint32_t     	buffer[100][7];	//into this buffer, the DMA writes the measured current values
+uint32_t     	buffer[7];	//into this buffer, the DMA writes the measured current values
 
 int				rotVelo = 0;	//rotation velocity of the motor in rpm
 int cntr;
@@ -214,28 +215,38 @@ void ADC_Start (void)
 
 void ADCDMA_Init (void)
  {
- RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;								// Channel0
- DMA1_Stream0->CR &= ~DMA_SxCR_EN;
- DMA1_Stream0->CR &= ~DMA_SxCR_MBURST;								// DMA_MemoryBurst = DMA_MemoryBurst_Single
- DMA1_Stream0->CR &= ~DMA_SxCR_MSIZE;
- DMA1_Stream0->CR |= DMA_SxCR_MSIZE_1;								// 10 DMA_MemoryDataSize 32 bit
- DMA1_Stream0->CR |= DMA_SxCR_MINC;									// DMA_MemoryIncrement enable
- DMA1_Stream0->CR &= ~DMA_SxCR_CIRC;								// DMA_Mode = DMA_Mode_Normal
- DMA1_Stream0->PAR = (uint32_t)(&(ADC1->DR));						// DMA_PeripheralBaseAddr
- DMA1_Stream0->CR &= ~DMA_SxCR_PBURST;								// DMA_PeripheralBurst = DMA_PeripheralBurst_Single
- DMA1_Stream0->CR &= ~DMA_SxCR_PSIZE;
- DMA1_Stream0->CR |= DMA_SxCR_PSIZE_1;								// 10 DMA_PeripheralDataSize 32 bit
- DMA1_Stream0->CR &= ~DMA_SxCR_PINC;								// DMA_PeripheralIncrement disable
- DMA1_Stream0->CR &= ~DMA_SxCR_PL;									// priority 0 nur eine DMA
- DMA1_Stream0->CR &= ~DMA_SxCR_DIR;									// DMA_DIR = DMA_DIR_PeripheralToMemory
- DMA1_Stream0->CR |= DMA_SxCR_TCIE;									// transfer complete Interrupt enable
- DMAMUX1_Channel0->CCR = 0x00000009;								// Channel0 ADC1
- //DMA1_Stream0->NDTR = 3;											// DMA_BufferSize for every sequence
- DMA1_Stream0->NDTR = 700;	 										// DMA_BufferSize for full Buffer
- DMA1_Stream0->M0AR = (uint32_t)(&(buffer[0][0]));					// DMA_Memory0BaseAddr
- DMA1->LIFCR = DMA_LIFCR_CTCIF0;
- DMA1_Stream0->CR |= DMA_SxCR_EN; 									// Enable the DMA
- HAL_NVIC_EnableIRQ (DMA1_Stream0_IRQn);
+	 RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;								// Channel0
+	 DMA1_Stream0->CR &= ~DMA_SxCR_EN;
+	 DMA1_Stream0->CR &= ~DMA_SxCR_MBURST;								// DMA_MemoryBurst = DMA_MemoryBurst_Single
+	 DMA1_Stream0->CR &= ~DMA_SxCR_MSIZE;
+	 DMA1_Stream0->CR |= DMA_SxCR_MSIZE_1;								// 10 DMA_MemoryDataSize 32 bit
+	 DMA1_Stream0->CR |= DMA_SxCR_MINC;									// DMA_MemoryIncrement enable
+	 DMA1_Stream0->CR &= ~DMA_SxCR_CIRC;								// DMA_Mode = DMA_Mode_Normal
+	 DMA1_Stream0->PAR = (uint32_t)(&(ADC1->DR));						// DMA_PeripheralBaseAddr
+	 DMA1_Stream0->CR &= ~DMA_SxCR_PBURST;								// DMA_PeripheralBurst = DMA_PeripheralBurst_Single
+	 DMA1_Stream0->CR &= ~DMA_SxCR_PSIZE;
+	 DMA1_Stream0->CR |= DMA_SxCR_PSIZE_1;								// 10 DMA_PeripheralDataSize 32 bit
+	 DMA1_Stream0->CR &= ~DMA_SxCR_PINC;								// DMA_PeripheralIncrement disable
+	 DMA1_Stream0->CR &= ~DMA_SxCR_PL;									// priority 0 nur eine DMA
+	 DMA1_Stream0->CR &= ~DMA_SxCR_DIR;									// DMA_DIR = DMA_DIR_PeripheralToMemory
+	 DMA1_Stream0->CR |= DMA_SxCR_TCIE;									// transfer complete Interrupt enable
+	 DMAMUX1_Channel0->CCR = 0x00000009;								// Channel0 ADC1
+	 //DMA1_Stream0->NDTR = 3;											// DMA_BufferSize for every sequence
+	 DMA1_Stream0->NDTR = 7;	 										// DMA_BufferSize for full Buffer
+	 DMA1_Stream0->M0AR = (uint32_t)(&(buffer[0]));					// DMA_Memory0BaseAddr
+	 DMA1->LIFCR = DMA_LIFCR_CTCIF0;
+	 DMA1_Stream0->CR |= DMA_SxCR_EN; 									// Enable the DMA
+
+	 // Select the Data Direction
+	 DMA2_Stream0->CR &= ~(3<<6);  // Peripheral to memory
+	 // Select Circular mode
+	 DMA2_Stream0->CR |= (1<<8);  // CIRC = 1
+	 // Enable Memory Address Increment
+	 DMA2_Stream0->CR |= (1<<10);  // MINC = 1;
+	 // Select channel for the stream
+	 DMA2_Stream0->CR &= ~(7<<25);  // Channel 0 selected
+
+	 HAL_NVIC_EnableIRQ (DMA1_Stream0_IRQn);
  }
 
 void ADC_Init (void)
@@ -747,7 +758,7 @@ int main(void)
 //        current_measured_inPeriod_3 = true;
 //      }
 //
-//      measure(4);
+
     
 
 	  //ADC Abtastfunktionen
