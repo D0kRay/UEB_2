@@ -128,7 +128,7 @@ int cntr;
 int cntr2;
 //Wechselberger, Kirchhoff USB
 uint8_t			transmiton = 0;
-uint8_t			motor_status = 0;	//0 = Motor stop, 1 = Motor run
+uint8_t			motor_status = 0;
 
 /* USER CODE END PV */
 

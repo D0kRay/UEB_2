@@ -912,7 +912,7 @@ void TIM4_IRQHandler(void)
 		  	  	  	  	    HAL_GPIO_ReadPin(DIPSW2_GPIO_Port, DIPSW2_Pin)*2 +
 						    HAL_GPIO_ReadPin(DIPSW3_GPIO_Port, DIPSW3_Pin)*4 +
 							HAL_GPIO_ReadPin(DIPSW4_GPIO_Port, DIPSW4_Pin)*8;
-  if(no_Error == error)
+  if(no_Error == error && dipPositionCurrent == 1) //Erster Dip switch fuer Fernsteuerungsfunktion
   {
 	  if(motor_status == 1) {
 		  operationMode = start_threePhaseMode;

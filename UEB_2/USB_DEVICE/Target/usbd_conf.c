@@ -26,7 +26,7 @@
 #include "usbd_core.h"
 
 /* USER CODE BEGIN Includes */
-
+extern uint8_t motor_status;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -228,6 +228,11 @@ void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
   __HAL_PCD_GATE_PHYCLOCK(hpcd);
   /* Enter in STOP mode. */
   /* USER CODE BEGIN 2 */
+  //XXX USB Steckererkennung bei abgezogenem Stecker wird der Motor ausgeschaltet falls er läuft
+  if(motor_status != 0) {
+	  motor_status = 0; //Motor aus
+  }
+
   if (hpcd->Init.low_power_enable)
   {
     /* Set SLEEPDEEP bit and SleepOnExit of Cortex System Control Register. */
