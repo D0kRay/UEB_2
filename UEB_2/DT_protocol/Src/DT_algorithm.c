@@ -35,8 +35,12 @@ list_node_t* DT_fillBuffer(list_t *DT_list, list_node_t *DT_node , uint8_t* buf)
 				else{
 					if(dt_set->next != NULL)
 						dt_set = dt_set->next;
-					else
+					else{
 						dt_set = DT_list->head;
+						if(dt_set->val->F_SendData == F_OFF) {
+							break;
+						}
+					}
 				}
 			}while(dt_set != DT_node);
 
