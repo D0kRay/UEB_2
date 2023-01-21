@@ -27,9 +27,9 @@ uint8_t id_array[255];
 
 UEB_StatusType uebstatus = {
 		  .status = UEB_STOP,
-		  .vccvoltage = 10.45,
-		  .outvoltage = 1.545,
-		  .frequency = 1000.55,
+		  .vccvoltage = 20,
+		  .outvoltage = 17,
+		  .frequency = 100,
 		  .rotationdirection = 0,
 		  .thirdharmonic = 0,
 		  .softstart = 1,
@@ -131,7 +131,8 @@ void decodeUEBMessage(char* message, EventQueue **queue)
 				uebstatus.status = getFloatOfMessage(message);
 				setEventClass(evt,Interrupt);
 				setEventMessage(evt,3);
-				addEvent(queue, evt);			}
+				addEvent(queue, evt);
+			}
 		}
 	} else {
 		TransmitBuffer((uint8_t*)"Error: Wrong Command\r", strlen("Error: Wrong Command\r"));

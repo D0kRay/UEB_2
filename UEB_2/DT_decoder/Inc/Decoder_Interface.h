@@ -20,9 +20,14 @@
  */
 
 #define UEB_INIT 0
-#define UEB_INIT_FINISH 1
-#define UEB_RUN 2
-#define UEB_STOP 3
+#define UEB_RUN_THREEPHASE 1
+#define UEB_RUN_DC 2
+#define UEB_RUN_CAL_ADC 3
+#define UEB_RUN_CONTROL 4
+#define UEB_STOP 5
+#define UEB_INIT_FINISH 6
+
+
 
 //UEB structs
 typedef struct {

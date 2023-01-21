@@ -128,6 +128,7 @@ int cntr;
 int cntr2;
 //Wechselberger, Kirchhoff USB
 uint8_t			transmiton = 0;
+uint8_t			motor_status = 0;	//0 = Motor stop, 1 = Motor run
 
 /* USER CODE END PV */
 
@@ -330,6 +331,16 @@ void setUEBStatus()
 	//	overCurrentThreshold = ueb_status->maxcurrent; 				//enter the allowed current in ampere (range of values: 0 to 10 Ampere)
 		numberOfAveragedValues = ueb.averagenum;    			//enter by how many current values you want to calculate the average
 	//	pwmFrequency = ueb_status->pwmfrequency;
+	} else if(ueb.status == UEB_RUN_THREEPHASE) {
+		motor_status = 1;
+	} else if(ueb.status == UEB_RUN_DC) {
+		motor_status = 2;
+	} else if(ueb.status == UEB_RUN_CAL_ADC) {
+		motor_status = 3;
+	} else if(ueb.status == UEB_RUN_CONTROL) {
+		motor_status = 4;
+	} else if(ueb.status == UEB_STOP) {
+		motor_status = 0;
 	}
 }
 

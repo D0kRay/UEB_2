@@ -79,6 +79,7 @@ uint8_t 					dipPositionPrevious = 0; //the value of the previous Dip Switch pos
 uint8_t 					dipPositionCurrent = 0;  //the value of the current Dip Switch position (0 to 15)
 uint8_t 					operationMode = 0;		 //the value adjusts in which mode the system works / the motor is operated
 extern uint8_t 				error;
+extern uint8_t				motor_status;
 
 //Variables for the PWM signal, generating Sin and AC.
 //general:
@@ -913,60 +914,86 @@ void TIM4_IRQHandler(void)
 							HAL_GPIO_ReadPin(DIPSW4_GPIO_Port, DIPSW4_Pin)*8;
   if(no_Error == error)
   {
-	if(dipPositionCurrent != dipPositionPrevious)
-	  {
-		  switch (dipPositionCurrent)
-		  {
-			  case 0:
-			  {
-				  operationMode = turnOff;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
-				  break;
-			  }
-			  case 1:
-			  {
-				  operationMode = start_threePhaseMode;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
-				  break;
-			  }
-			  case 2:
-			  {
-				  operationMode = start_DCMode;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
-				  break;
-			  }
-			  case 3:
-			  {
-				  operationMode = start_calibrateADC;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
-				  break;
-			  }
-			  case 8:
-			  {
-				  operationMode = start_control;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
-				  break;
-			  }
-			  default:
-			  {
-				  operationMode = turnOff;
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
-				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
-				  break;
-			  }
-		  }
+	  if(motor_status == 1) {
+		  operationMode = start_threePhaseMode;
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+	  } else if(motor_status == 2){
+		  operationMode = start_DCMode;
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+	  } else if(motor_status == 3){
+		  operationMode = start_calibrateADC;
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
+	  } else if(motor_status == 4){
+		  operationMode = start_control;
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
+	  } else {
+		  operationMode = turnOff;
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
 	  }
+//	if(dipPositionCurrent != dipPositionPrevious)
+//	  {
+//		  switch (dipPositionCurrent)
+//		  {
+//			  case 0:
+//			  {
+//				  operationMode = turnOff;
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+//				  break;
+//			  }
+//			  case 1:
+//			  {
+//				  operationMode = start_threePhaseMode;
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+//				  break;
+//			  }
+//			  case 2:
+//			  {
+//				  operationMode = start_DCMode;
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+//				  break;
+//			  }
+//			  case 3:
+//			  {
+//				  operationMode = start_calibrateADC;
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
+//				  break;
+//			  }
+//			  case 8:
+//			  {
+//				  operationMode = start_control;
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_SET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_SET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET);
+//				  break;
+//			  }
+//			  default:
+//			  {
+//				  operationMode = turnOff;
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_4, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_5, GPIO_PIN_RESET);
+//				  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+//				  break;
+//			  }
+//		  }
+//	  }
   }
   else
   {
