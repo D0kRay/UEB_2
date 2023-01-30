@@ -62,6 +62,7 @@ ADC_HandleTypeDef hadc1;
 IWDG_HandleTypeDef hiwdg1;
 
 SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
@@ -130,19 +131,22 @@ int cntr2;
 //Wechselberger, Kirchhoff USB
 uint8_t			transmiton = 0;
 uint8_t			motor_status = 0;
+AD2S1210_HandleTypeDef hResolver;
+AD2S1210_StatusTypeDef statusResolver;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM1_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_IWDG1_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM1_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 extern void measure();
@@ -399,7 +403,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM1_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
   MX_TIM4_Init();
   MX_ADC1_Init();
@@ -407,6 +411,7 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM3_Init();
   MX_USB_DEVICE_Init();
+  MX_TIM1_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);	//LED 3 turned on to see system resets in case of IWDG1(Watchdog)
@@ -459,6 +464,18 @@ int main(void)
   setEventMessage(evt1,DataTransmissionComplete);
   addEvent(&Q_DataTransmission,evt1);
   free(evt1);
+
+  //Resolver pre init
+  hResolver.GPIO_A0_PIN = RESOLVER_A0_Pin;
+  hResolver.GPIO_A0_PORT = RESOLVER_A0_GPIO_Port;
+  hResolver.GPIO_A1_PIN = RESOLVER_A1_Pin;
+  hResolver.GPIO_A1_PORT = RESOLVER_A1_GPIO_Port;
+  hResolver.GPIO_SAMPLE_PIN = RESOLVER_SAMPLE_Pin;
+  hResolver.GPIO_SAMPLE_PORT = RESOLVER_SAMPLE_GPIO_Port;
+  hResolver.GPIO_WR_FSYNC_PIN = RESOLVER_WR_FSYNC_Pin;
+  hResolver.GPIO_WR_FSYNC_PORT = RESOLVER_WR_FSYNC_GPIO_Port;
+
+  AD2S1210Initiate(&hspi2, &hdma_spi2_rx, &hResolver, &statusResolver);
 
   /* USER CODE END 2 */
 
@@ -1028,7 +1045,7 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
@@ -1329,6 +1346,22 @@ static void MX_TIM5_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -1353,10 +1386,11 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOF, LED1_Pin|LED2_Pin|LED3_Pin|LED4_Pin
-                          |LED5_Pin|LED6_Pin|LED7_Pin|LED8_Pin, GPIO_PIN_RESET);
+                          |LED5_Pin|LED6_Pin|LED7_Pin|LED8_Pin
+                          |RESOLVER_A1_Pin|RESOLVER_A0_Pin|RESOLVER_WR_FSYNC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOH, R_F_W_UC_Pin|R_F_V_UC_Pin|R_F_U_UC_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOH, RESOLVER_SAMPLE_Pin|R_F_W_UC_Pin|R_F_V_UC_Pin|R_F_U_UC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(TRANSMITTER1_GPIO_Port, TRANSMITTER1_Pin, GPIO_PIN_RESET);
@@ -1381,9 +1415,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED1_Pin LED2_Pin LED3_Pin LED4_Pin
-                           LED5_Pin LED6_Pin LED7_Pin LED8_Pin */
+                           LED5_Pin LED6_Pin LED7_Pin LED8_Pin
+                           RESOLVER_A1_Pin RESOLVER_A0_Pin RESOLVER_WR_FSYNC_Pin */
   GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin|LED3_Pin|LED4_Pin
-                          |LED5_Pin|LED6_Pin|LED7_Pin|LED8_Pin;
+                          |LED5_Pin|LED6_Pin|LED7_Pin|LED8_Pin
+                          |RESOLVER_A1_Pin|RESOLVER_A0_Pin|RESOLVER_WR_FSYNC_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1395,8 +1431,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(Reference_Signal_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : R_F_W_UC_Pin R_F_V_UC_Pin R_F_U_UC_Pin */
-  GPIO_InitStruct.Pin = R_F_W_UC_Pin|R_F_V_UC_Pin|R_F_U_UC_Pin;
+  /*Configure GPIO pins : RESOLVER_SAMPLE_Pin R_F_W_UC_Pin R_F_V_UC_Pin R_F_U_UC_Pin */
+  GPIO_InitStruct.Pin = RESOLVER_SAMPLE_Pin|R_F_W_UC_Pin|R_F_V_UC_Pin|R_F_U_UC_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

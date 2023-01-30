@@ -35,6 +35,7 @@ extern "C" {
 #include "stdbool.h"
 #include "DT_interface.h"
 #include "EventQueue.h"
+#include "AD2S1210.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -110,8 +111,20 @@ void Error_Handler(void);
 #define LED7_GPIO_Port GPIOF
 #define LED8_Pin GPIO_PIN_7
 #define LED8_GPIO_Port GPIOF
+#define RESOLVER_A1_Pin GPIO_PIN_8
+#define RESOLVER_A1_GPIO_Port GPIOF
+#define RESOLVER_A0_Pin GPIO_PIN_9
+#define RESOLVER_A0_GPIO_Port GPIOF
+#define RESOLVER_WR_FSYNC_Pin GPIO_PIN_10
+#define RESOLVER_WR_FSYNC_GPIO_Port GPIOF
+#define RESOLVER_SPI_SDI_Pin GPIO_PIN_1
+#define RESOLVER_SPI_SDI_GPIO_Port GPIOC
+#define RESOLVER_SPI_SDO_Pin GPIO_PIN_2
+#define RESOLVER_SPI_SDO_GPIO_Port GPIOC
 #define Reference_Signal_Pin GPIO_PIN_2
 #define Reference_Signal_GPIO_Port GPIOA
+#define RESOLVER_SAMPLE_Pin GPIO_PIN_2
+#define RESOLVER_SAMPLE_GPIO_Port GPIOH
 #define IHB1_UC_Pin GPIO_PIN_4
 #define IHB1_UC_GPIO_Port GPIOA
 #define IHB2_UC_Pin GPIO_PIN_6
@@ -132,6 +145,8 @@ void Error_Handler(void);
 #define HB3H_1_GPIO_Port GPIOE
 #define EN_BRUECKE_1_Pin GPIO_PIN_15
 #define EN_BRUECKE_1_GPIO_Port GPIOE
+#define RESOLVER_SPI_CLK_Pin GPIO_PIN_10
+#define RESOLVER_SPI_CLK_GPIO_Port GPIOB
 #define R_F_W_UC_Pin GPIO_PIN_6
 #define R_F_W_UC_GPIO_Port GPIOH
 #define R_F_V_UC_Pin GPIO_PIN_7
