@@ -201,7 +201,7 @@ void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char *
 //		SET_CS();
 		//write control register address
 
-
+//		HAL_SPI_TransmitReceive_DMA(hspi_AD2S1210, &address, buf, address);
 		//read 1-byte register
 //		SET_SCLK();
 

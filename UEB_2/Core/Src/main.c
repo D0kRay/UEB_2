@@ -131,6 +131,7 @@ int cntr2;
 //Wechselberger, Kirchhoff USB
 uint8_t			transmiton = 0;
 uint8_t			motor_status = 0;
+uint8_t 		motor_status_old = 0;
 AD2S1210_HandleTypeDef hResolver;
 AD2S1210_StatusTypeDef statusResolver;
 
