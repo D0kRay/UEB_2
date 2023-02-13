@@ -11,7 +11,7 @@ SPI_HandleTypeDef *hspi_AD2S1210;
 DMA_HandleTypeDef *hdma_spi_AD2S1210;
 AD2S1210_HandleTypeDef *resolver_HandleType;
 AD2S1210_StatusTypeDef *resolver_StatusType;
-
+uint8_t resolver_buffer[4];
 
 
 void SET_A0(void)
@@ -74,15 +74,14 @@ void CLR_SPL(void)
 	HAL_GPIO_WritePin(resolver_HandleType->GPIO_SAMPLE_PORT, resolver_HandleType->GPIO_SAMPLE_PIN, GPIO_PIN_RESET);
 }
 
-void SPIRead(unsigned char count, unsigned char *buf)
+void SPIRead(uint8_t count, uint8_t *buf)
 {
 	HAL_SPI_Receive_DMA(hspi_AD2S1210, buf, count);
 }
 
-void SPIWrite(unsigned char count, unsigned char *buf)
+void SPIWrite(uint8_t count, uint8_t *buf)
 {
-	HAL_SPI_Transmit(hspi_AD2S1210, buf, count, 100);
-//	HAL_SPI_Transmit_IT(hspi_AD2S1210, buf, count);
+	HAL_SPI_Transmit(hspi_AD2S1210, buf, count, 10);
 }
 
 
@@ -102,7 +101,7 @@ void AD2S1210Initiate(SPI_HandleTypeDef *spi_handle, DMA_HandleTypeDef *dma_hand
 //	SET_SPL();
 }
 
-void AD2S1210SelectMode(unsigned char mode)
+void AD2S1210SelectMode(uint8_t mode)
 {
 	if (mode==RESOLVER_POSITION)
 	{
@@ -124,9 +123,9 @@ void AD2S1210SelectMode(unsigned char mode)
 	}
 }
 
-void WriteToAD2S1210(unsigned char address, unsigned char data)
+void WriteToAD2S1210(uint8_t address, uint8_t data)
 {
-	unsigned	char	buf;
+	uint8_t buf;
 
 	//write control register address
 	buf = address;
@@ -173,14 +172,14 @@ void WriteToAD2S1210(unsigned char address, unsigned char data)
 	//write control register data
 }
 
-void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char * buf)
+void ReadFromAD2S1210(uint8_t mode, uint8_t address)
 {
 
 	if (mode==RESOLVER_CONFIG)
 	{
-
+		AD2S1210SelectMode(RESOLVER_CONFIG);
 		//write control register address
-		buf[0] = address;
+		resolver_buffer[0] = address;
 
 //		SET_SCLK();
 //		HAL_Delay(1);
@@ -194,7 +193,7 @@ void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char *
 		CLR_WR();
 		HAL_Delay(1);
 
-		SPIWrite(1,buf);
+		SPIWrite(1,resolver_buffer);
 
 		SET_WR();
 		HAL_Delay(1);
@@ -218,7 +217,7 @@ void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char *
 		CLR_WR();
 		HAL_Delay(1);
 
-		SPIRead(1,buf);
+		SPIRead(1,resolver_buffer);
 
 		SET_WR();
 		HAL_Delay(1);
@@ -226,8 +225,9 @@ void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char *
 //		SET_CS();
 		//read 1-byte register
 	}
-	else if (mode==RESOLVER_POSITION||mode==RESOLVER_VELOCITY)
+	else if (mode==RESOLVER_POSITION)
 	{
+		AD2S1210SelectMode(RESOLVER_POSITION);
 		SET_SPL();
 		HAL_Delay(1);
 		CLR_SPL();
@@ -249,7 +249,41 @@ void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char *
 		CLR_WR();
 		HAL_Delay(1);
 
-		SPIRead(3,buf);		//read data register
+		SPIRead(3,resolver_buffer);		//read data register
+
+		SET_WR();
+		HAL_Delay(1);
+
+//		SET_CS();
+		//read 3-byte register
+
+
+	}
+	else if (mode==RESOLVER_VELOCITY)
+	{
+		AD2S1210SelectMode(RESOLVER_VELOCITY);
+		SET_SPL();
+		HAL_Delay(1);
+		CLR_SPL();
+		HAL_Delay(5);
+
+		//read 3-byte register
+//		SET_SCLK();
+
+//		SET_CS();
+		SET_WR();
+		HAL_Delay(1);
+
+//		CLR_CS();
+//		HAL_Delay(1);
+
+//		CLR_SCLK();
+//		HAL_Delay(1);
+
+		CLR_WR();
+		HAL_Delay(1);
+
+		SPIRead(3,resolver_buffer);		//read data register
 
 		SET_WR();
 		HAL_Delay(1);
@@ -263,20 +297,109 @@ void ReadFromAD2S1210(unsigned char mode, unsigned char address, unsigned char *
 
 void AD2S1210SoftReset(void)
 {
-	unsigned char buf=	SOFTRESET;
+	unsigned char buf = SOFT_RESET;
 	SPIWrite (1,&buf);	  	//soft reset
 	HAL_Delay(10);
 }
+/*
+ * Table 22. Control Register Bit Descriptions
+Bit Description
+D7 Address/data bit
+D6 Reserved; set to 1
+D5 Phase lock range
+ 0 = 360°, 1 = ±44°
+D4 0 = disable hysteresis, 1 = enable hysteresis
+D3 Set Encoder Resolution EnRES1
+D2 Set Encoder Resolution EnRES0
+D1 Set Resolution RES1
+D0 Set Resolution RES0
+ */
 
-//void GetAngleOfResolver()
-//{
+uint8_t getAD2S1210ControlRegister(AD2S1210_ControlRegister controlregister)
+{
+	return (controlregister.dataBit << 7 | controlregister.reserved << 6 | controlregister.phase << 5 | controlregister.hysteresis << 4 | controlregister.encoderResolution << 2 | controlregister.resolution);
+}
+
+
+void setupAD2S1210()
+{
+	AD2S1210SelectMode(RESOLVER_CONFIG);
+	WriteToAD2S1210(LOS_THRESHOLD, resolver_HandleType->resolverLosThreshold);
+//	HAL_Delay(1);
+	WriteToAD2S1210(DOS_OVERRANGE_THRES, resolver_HandleType->resolverDosOverrangeThres);
+//	HAL_Delay(1);
+	WriteToAD2S1210(DOS_MISMATCH_THRES, resolver_HandleType->resolverDosMismatchThres);
+//	HAL_Delay(1);
+	WriteToAD2S1210(DOS_RESET_MAX_THRES, resolver_HandleType->resolverDosResetMaxThres);
+//	HAL_Delay(1);
+	WriteToAD2S1210(DOS_RESET_MIN_THRES, resolver_HandleType->resolverDosResetMinThres);
+//	HAL_Delay(1);
+	WriteToAD2S1210(LOT_HIGH_THRES, resolver_HandleType->resolverLotHighThres);
+//	HAL_Delay(1);
+	WriteToAD2S1210(LOT_LOW_THRES, resolver_HandleType->resolverLotLowThres);
+//	HAL_Delay(1);
+	WriteToAD2S1210(EXCITATION_FREQ, resolver_HandleType->resolverExcitationFreq);
+//	HAL_Delay(1);
+	uint8_t control = getAD2S1210ControlRegister(resolver_HandleType->resolverControl);
+	WriteToAD2S1210(CONTROL, control);
+	AD2S1210SelectMode(RESOLVER_POSITION);
+}
+/*
+	The angular position data format is
+	unsigned binary, with all 0s corresponding to 0 degrees and all
+	1s corresponding to 360 degrees − l LSB.
+	The angular velocity data
+	format is twos complement binary, with the MSB representing the
+	rotation direction.
+	Bit 7 through Bit 0 correspond to the fault
+	information.
+ */
+uint16_t getAngleOfResolver(void)
+{
 //
-//}
-//void GetVelocityOfResolver()
-//{
-//
-//}
-//void GetErrorOfResolver()
-//{
-//
-//}
+//	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ, resolver_buffer);
+	uint16_t angle = (resolver_buffer[0]<<8) & resolver_buffer[1];
+	if(resolver_HandleType->resolverControl.hysteresis){
+		angle = angle >> (16 - resolver_HandleType->resolverControl.resolution);
+	}
+	return angle;
+}
+int16_t getAngleVelocityOfResolver(void)
+{
+//	AD2S1210SelectMode(RESOLVER_VELOCITY);
+//	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ, resolver_buffer);
+	uint16_t velo = (resolver_buffer[0]<<8) & resolver_buffer[1];
+	uint16_t velonegative = resolver_buffer[0] & 0x80;
+	velo = velo >> (16 - resolver_HandleType->resolverControl.resolution);
+	if(velo & 0x8000) {
+		velonegative = (0xFFFF >> resolver_HandleType->resolverControl.resolution) << resolver_HandleType->resolverControl.resolution;
+		velo |= velonegative;
+	}
+	return (int16_t) velo;
+}
+uint8_t getErrorOfResolver(void)
+{
+//	AD2S1210SelectMode(RESOLVER_POSITION);
+//	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ, resolver_buffer);
+	return resolver_buffer[3];
+}
+
+//switch (chan->type) {
+//	case IIO_ANGL:
+//		pos = be16_to_cpup((__be16 *)st->rx);
+//		if (st->hysteresis)
+//			pos >>= 16 - st->resolution;
+//		*val = pos;
+//		ret = IIO_VAL_INT;
+//		break;
+//	case IIO_ANGL_VEL:
+//		negative = st->rx[0] & 0x80;
+//		vel = be16_to_cpup((__be16 *)st->rx);
+//		vel >>= 16 - st->resolution;
+//		if (vel & 0x8000) {
+//			negative = (0xffff >> st->resolution) << st->resolution;
+//			vel |= negative;
+//		}
+//		*val = vel;
+//		ret = IIO_VAL_INT;
+//		break;

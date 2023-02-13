@@ -360,6 +360,11 @@ void setUEBStatus()
 	}
 }
 
+uint32_t generateTimestamp()
+{
+	return HAL_GetTick();
+}
+
 
 /* USER CODE END 0 */
 
@@ -850,6 +855,10 @@ int main(void)
   /* USER CODE END 3 */
 }
 
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi)
+{
+
+}
 /**
   * @brief System Clock Configuration
   * @retval None
