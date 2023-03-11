@@ -194,7 +194,7 @@ void ReadFromAD2S1210(uint8_t mode, uint8_t address)
 		HAL_Delay(1);
 
 		SPIWrite(1,resolver_buffer);
-
+		resolver_buffer[0] = 0xFF;
 		SET_WR();
 		HAL_Delay(1);
 //		SET_CS();
@@ -321,26 +321,26 @@ uint8_t getAD2S1210ControlRegister(AD2S1210_ControlRegister controlregister)
 }
 
 
-void setupAD2S1210()
+void AD2S1210Setup(AD2S1210_HandleTypeDef *resolver_handle)
 {
 	AD2S1210SelectMode(RESOLVER_CONFIG);
-	WriteToAD2S1210(LOS_THRESHOLD, resolver_HandleType->resolverLosThreshold);
+	WriteToAD2S1210(LOS_THRESHOLD, resolver_handle->resolverLosThreshold);
 //	HAL_Delay(1);
-	WriteToAD2S1210(DOS_OVERRANGE_THRES, resolver_HandleType->resolverDosOverrangeThres);
+	WriteToAD2S1210(DOS_OVERRANGE_THRES, resolver_handle->resolverDosOverrangeThres);
 //	HAL_Delay(1);
-	WriteToAD2S1210(DOS_MISMATCH_THRES, resolver_HandleType->resolverDosMismatchThres);
+	WriteToAD2S1210(DOS_MISMATCH_THRES, resolver_handle->resolverDosMismatchThres);
 //	HAL_Delay(1);
-	WriteToAD2S1210(DOS_RESET_MAX_THRES, resolver_HandleType->resolverDosResetMaxThres);
+	WriteToAD2S1210(DOS_RESET_MAX_THRES, resolver_handle->resolverDosResetMaxThres);
 //	HAL_Delay(1);
-	WriteToAD2S1210(DOS_RESET_MIN_THRES, resolver_HandleType->resolverDosResetMinThres);
+	WriteToAD2S1210(DOS_RESET_MIN_THRES, resolver_handle->resolverDosResetMinThres);
 //	HAL_Delay(1);
-	WriteToAD2S1210(LOT_HIGH_THRES, resolver_HandleType->resolverLotHighThres);
+	WriteToAD2S1210(LOT_HIGH_THRES, resolver_handle->resolverLotHighThres);
 //	HAL_Delay(1);
-	WriteToAD2S1210(LOT_LOW_THRES, resolver_HandleType->resolverLotLowThres);
+	WriteToAD2S1210(LOT_LOW_THRES, resolver_handle->resolverLotLowThres);
 //	HAL_Delay(1);
-	WriteToAD2S1210(EXCITATION_FREQ, resolver_HandleType->resolverExcitationFreq);
+	WriteToAD2S1210(EXCITATION_FREQ, resolver_handle->resolverExcitationFreq);
 //	HAL_Delay(1);
-	uint8_t control = getAD2S1210ControlRegister(resolver_HandleType->resolverControl);
+	uint8_t control = getAD2S1210ControlRegister(resolver_handle->resolverControl);
 	WriteToAD2S1210(CONTROL, control);
 	AD2S1210SelectMode(RESOLVER_POSITION);
 }
@@ -356,8 +356,8 @@ void setupAD2S1210()
  */
 uint16_t getAngleOfResolver(void)
 {
-//
-//	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ, resolver_buffer);
+	AD2S1210SelectMode(RESOLVER_POSITION);
+	ReadFromAD2S1210(RESOLVER_POSITION, POSITION_VELOCITY_READ);
 	uint16_t angle = (resolver_buffer[0]<<8) & resolver_buffer[1];
 	if(resolver_HandleType->resolverControl.hysteresis){
 		angle = angle >> (16 - resolver_HandleType->resolverControl.resolution);
@@ -366,8 +366,8 @@ uint16_t getAngleOfResolver(void)
 }
 int16_t getAngleVelocityOfResolver(void)
 {
-//	AD2S1210SelectMode(RESOLVER_VELOCITY);
-//	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ, resolver_buffer);
+	AD2S1210SelectMode(RESOLVER_VELOCITY);
+	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ);
 	uint16_t velo = (resolver_buffer[0]<<8) & resolver_buffer[1];
 	uint16_t velonegative = resolver_buffer[0] & 0x80;
 	velo = velo >> (16 - resolver_HandleType->resolverControl.resolution);
@@ -379,10 +379,31 @@ int16_t getAngleVelocityOfResolver(void)
 }
 uint8_t getErrorOfResolver(void)
 {
-//	AD2S1210SelectMode(RESOLVER_POSITION);
-//	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ, resolver_buffer);
+	AD2S1210SelectMode(RESOLVER_POSITION);
+	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ);
 	return resolver_buffer[3];
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //switch (chan->type) {
 //	case IIO_ANGL:

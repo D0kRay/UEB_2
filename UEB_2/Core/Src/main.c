@@ -506,6 +506,15 @@ int main(void)
 					setUEBStatus();
 					break;
 
+				case Resolver_params_set:
+					AD2S1210Setup(&hResolver);
+					break;
+
+				case Resolver_read_data:
+					AD;
+					break;
+
+
 				default:
 					break;
 			}

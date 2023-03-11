@@ -40,9 +40,9 @@ typedef struct {
 } AD2S1210_HandleTypeDef;
 
 typedef struct {
-	uint32_t		resolverRotationangle;		//
-	uint32_t		resolverVelocity;			//
-	uint32_t		resolverErrorFlags;			//
+	uint16_t		resolverRotationangle;		//
+	int16_t		resolverVelocity;			//
+	uint16_t		resolverErrorFlags;			//
 } AD2S1210_StatusTypeDef;
 
 
@@ -80,6 +80,7 @@ typedef struct {
 void AD2S1210Initiate(SPI_HandleTypeDef *spi_handle, DMA_HandleTypeDef *dma_handle, AD2S1210_HandleTypeDef *resolver_handle, AD2S1210_StatusTypeDef *resolver_StatusType);
 void AD2S1210SelectMode(uint8_t mode);
 void AD2S1210SoftReset(void);
+void AD2S1210Setup(AD2S1210_HandleTypeDef *resolver_handle);
 void WriteToAD2S1210(uint8_t address, uint8_t data);
 void ReadFromAD2S1210(uint8_t mode, uint8_t address);
 uint16_t getAngleOfResolver(void);

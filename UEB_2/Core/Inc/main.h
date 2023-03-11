@@ -46,7 +46,9 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 typedef enum{
-	UEB_params_set = 0
+	UEB_params_set = 0,
+	Resolver_params_set = 1,
+	Resolver_read_data = 2
 }Main_Messages;
 
 typedef enum{
