@@ -510,9 +510,6 @@ int main(void)
 					AD2S1210Setup(&hResolver);
 					break;
 
-				case Resolver_read_data:
-					AD;
-					break;
 
 
 				default:
@@ -528,6 +525,9 @@ int main(void)
 
 					break;
 			  */
+				case Resolver_read_data:
+					getAD2S1210Data(&statusResolver);
+					break;
 
 				default:
 					break;

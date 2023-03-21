@@ -354,7 +354,7 @@ void AD2S1210Setup(AD2S1210_HandleTypeDef *resolver_handle)
 	Bit 7 through Bit 0 correspond to the fault
 	information.
  */
-uint16_t getAngleOfResolver(void)
+uint16_t AD2S1210getAngle(void)
 {
 	AD2S1210SelectMode(RESOLVER_POSITION);
 	ReadFromAD2S1210(RESOLVER_POSITION, POSITION_VELOCITY_READ);
@@ -364,7 +364,8 @@ uint16_t getAngleOfResolver(void)
 	}
 	return angle;
 }
-int16_t getAngleVelocityOfResolver(void)
+
+int16_t AD2S1210getAngleVelocity(void)
 {
 	AD2S1210SelectMode(RESOLVER_VELOCITY);
 	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ);
@@ -377,13 +378,20 @@ int16_t getAngleVelocityOfResolver(void)
 	}
 	return (int16_t) velo;
 }
-uint8_t getErrorOfResolver(void)
+
+uint8_t AD2S1210getError(void)
 {
 	AD2S1210SelectMode(RESOLVER_POSITION);
 	ReadFromAD2S1210(RESOLVER_VELOCITY, POSITION_VELOCITY_READ);
 	return resolver_buffer[3];
 }
 
+void getAD2S1210Data(AD2S1210_StatusTypeDef *resolverStatusVar)
+{
+	resolverStatusVar->resolverRotationangle = AD2S1210getAngle();
+	resolverStatusVar->resolverVelocity = AD2S1210getAngleVelocity();
+	resolverStatusVar->resolverErrorFlags = AD2S1210getError();
+}
 
 
 

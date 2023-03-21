@@ -83,9 +83,10 @@ void AD2S1210SoftReset(void);
 void AD2S1210Setup(AD2S1210_HandleTypeDef *resolver_handle);
 void WriteToAD2S1210(uint8_t address, uint8_t data);
 void ReadFromAD2S1210(uint8_t mode, uint8_t address);
-uint16_t getAngleOfResolver(void);
-int16_t getAngleVelocityOfResolver(void);
-uint8_t getErrorOfResolver(void);
+uint16_t AD2S1210getAngle(void);
+int16_t AD2S1210getAngleVelocity(void);
+uint8_t AD2S1210getError(void);
+void getAD2S1210Data(AD2S1210_StatusTypeDef *resolverStatusVar);
 
 
 
